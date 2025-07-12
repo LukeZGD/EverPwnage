@@ -44,6 +44,6 @@ This project is built using Xcode 10.1 and macOS High Sierra 10.13.6.
 - Special thanks to [kok3shidoll](https://github.com/kok3shidoll/), [Clarity](https://github.com/TheRealClarity/), and [staturnz](https://github.com/staturnzz/) for their incredible work and support. This jailbreak wouldn’t have been possible without them
 - Thanks to [Merculous](https://github.com/Merculous) for testing and feedback
 - exploit: [sock_port_2_legacy](https://github.com/kok3shidoll/sock_port_2_legacy/tree/ios8)
-- untether and patches: [daibutsu untether](https://kok3shidoll.github.io/info/jp.daibutsu.untether841/indexv2.html) ([GitHub repo](https://github.com/kok3shidoll/daibutsu))
+- untether and patches: [daibutsu untether](https://kok3shidoll.github.io/info/jp.daibutsu.untether841/indexv2.html) ([GitHub repo](https://github.com/kok3shidoll/daibutsu)), [libkok3shi](https://github.com/kok3shidoll/libkok3shi)
 - got IOKit stuff and other learnings from: [wtfis](https://github.com/TheRealClarity/wtfis)
 - base of this jailbreak: [openpwnage](https://github.com/0xilis/openpwnage)
