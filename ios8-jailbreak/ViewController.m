@@ -29,7 +29,7 @@
 
 NSString *system_machine;
 NSString *system_version;
-NSString *nkernv;
+char *ckernv;
 bool install_openssh = false;
 bool reinstall_strap = false;
 bool ios9 = false;
@@ -49,21 +49,18 @@ addr_t self_port_address = 0;
 
     system_machine = [NSString stringWithCString:systemInfo.machine encoding:NSUTF8StringEncoding];
     system_version = [[UIDevice currentDevice] systemVersion];
-    nkernv = [NSString stringWithCString:systemInfo.version encoding:NSUTF8StringEncoding];
+    ckernv = strdup(systemInfo.version);
+    printf("%s\n", ckernv);
 
-    NSLog(@"%@", nkernv);
     _deviceinfo_label.text = [NSString stringWithFormat:@"%@ | iOS %@", system_machine, system_version];
     NSLog(@"Running on %@ with iOS %@", system_machine, system_version);
 
-    // iOS 9.1-9.3.4? for later
-    // ([nkernv containsString:@"3248.60"] || [nkernv containsString:@"3248.5"] || [nkernv containsString:@"3248.4"] ||
-    //  [nkernv containsString:@"3248.3"] || [nkernv containsString:@"3248.2"] || [nkernv containsString:@"3248.10"] ||
-    // iOS 9.0.x
-    if ([nkernv containsString:@"3248.1."] || [nkernv containsString:@"3247"] || [nkernv containsString:@"3216"])
+    // iOS 9.0-9.3.4
+    if ((!strstr(ckernv, "3248.61") && strstr(ckernv, "3248")) || strstr(ckernv, "3247.1.88"))
         ios9 = true;
 
-    // iOS 8.0-9.0.2
-    if (!(ios9 || [nkernv containsString:@"2784"] || [nkernv containsString:@"2783"])) {
+    // iOS 8.0-9.3.4
+    if (!(ios9 || strstr(ckernv, "2784") || strstr(ckernv, "2783"))) {
         _jailbreak_button.enabled = NO;
         [_jailbreak_button setTitle:@"Not Supported" forState:UIControlStateDisabled];
     }

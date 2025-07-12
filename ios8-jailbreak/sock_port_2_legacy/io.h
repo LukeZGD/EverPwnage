@@ -25,7 +25,7 @@ enum
     kOSSerializeMagic           = 0x000000d3U,
 };
 
-mach_port_t spray_OSSerialize(void* data, size_t size);
+void spray_OSUnserializeXML(uint8_t *data, size_t size);
 int leak_anchor(addr_t* anchor);
 
 #endif

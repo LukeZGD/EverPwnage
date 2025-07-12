@@ -1,6 +1,6 @@
 # EverPwnage
 
-**iOS 8.0-9.0.2 Jailbreak for 32-bit Devices**
+**iOS 8.0-9.3.4 Jailbreak for 32-bit Devices**
 
 ## Usage
 
@@ -20,19 +20,20 @@ EverPwnage has an **"Install Untether" toggle**, which controls the installation
 
 ## Untether
 
-- **A6(X) devices (iOS 8.0-8.4.1)** and **A5(X) devices (iOS 8.3-8.4.1)** use **daibutsu untether**
-  - daibutsu untether utilizes dyld_shared_cache patch for bypassing codesigning and sock_port_2_legacy for the untether executable, developed by kok3shidoll (v2.0.3)
-- **A5(X) devices (iOS 8.0-8.2)** and **all devices on iOS 9.0-9.0.2** use **EverUntether**, which combines:
-  - [jsc_untether](https://github.com/staturnzz/jsc_untether) by staturnz (thanks to their work and assistance)
-  - A [forked version](https://github.com/LukeZGD/daibutsu) of daibutsu untether (based on v1.2.3), updated to replace Trident with sock_port_2_legacy, and some fixes for 9.0.x support
+- **daibutsu untether**
+    - daibutsu untether utilizes dyld_shared_cache patch for bypassing codesigning and sock_port_2_legacy for the untether executable, developed by kok3shidoll (v2.0.3).
+    - Used on A5(X) devices on iOS 8.3-8.4.1, and A6(X) devices on iOS 8.0-8.4.1, except 8.4.
+- **EverUntether**
+    - EverUntether is a combination of [jsc_untether](https://github.com/staturnzz/jsc_untether) by staturnz (thanks to their work and assistance) and a [forked version](https://github.com/LukeZGD/daibutsu) of daibutsu untether (based on v1.2.3), updated to replace Trident with sock_port_2_legacy, and some fixes for iOS 9 support.
+    - Used on A5(X) devices on iOS 8.0-8.2, and all devices on iOS 8.4 and 9.0-9.3.4.
 
 ## Switching from Other Jailbreaks
 
 If you are using other iOS 8 jailbreaks like EtasonJB, HomeDepot, or openpwnage, you can switch to EverPwnage. Jailbreaking with EverPwnage and keeping the "Install Untether" toggle enabled will switch your device to daibutsu untether or EverUntether.
 
-Do **not** use EverPwnage if your device is already jailbroken with these: Pangu8, Pangu9, TaiG, PPJailbreak, wtfis (not for 32-bit devices)
+Do **not** use EverPwnage if your device is already jailbroken with these: Pangu8, Pangu9, TaiG, PPJailbreak, wtfis
 
-These jailbreaks are already untethered and/or incompatible with 32-bit devices in the case of wtfis.
+These jailbreaks are already untethered and/or incompatible with migration.
 
 ## Building
 

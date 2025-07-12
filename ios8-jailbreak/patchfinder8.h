@@ -24,6 +24,7 @@ uint32_t find_i_can_has_debugger_2(uint32_t region, uint8_t* kdata, size_t ksize
 uint32_t find_vm_fault_enter_patch_84(uint32_t region, uint8_t* kdata, size_t ksize);
 
 uint32_t find_vm_map_protect_patch(uint32_t region, uint8_t* kdata, size_t ksize);
+uint32_t find_mount(uint32_t region, uint8_t* kdata, size_t ksize);
 uint32_t find_mount_90(uint32_t region, uint8_t* kdata, size_t ksize);
 uint32_t find_amfi_file_check_mmap(uint32_t region, uint8_t* kdata, size_t ksize);
 uint32_t find_i_can_has_debugger_1_90(uint32_t region, uint8_t* kdata, size_t ksize);
@@ -32,5 +33,7 @@ uint32_t find_vm_fault_enter_patch(uint32_t region, uint8_t* kdata, size_t ksize
 uint32_t find_sb_evaluate_90(uint32_t region, uint8_t* kdata, size_t ksize);
 uint32_t find_memcmp8(uint32_t region, uint8_t* kdata, size_t ksize);
 uint32_t find_p_bootargs_generic(uint32_t region, uint8_t* kdata, size_t ksize);
+uint32_t find_PE_i_can_has_kernel_configuration_got(uint32_t region, uint8_t* kdata, size_t ksize);
+uint32_t find_lwvm_jump(uint32_t region, uint8_t* kdata, size_t ksize);
 
 #endif /* patchfinder8_h */
