@@ -60,7 +60,7 @@ addr_t self_port_address = 0;
         ios9 = true;
 
     // iOS 8.0-9.3.4
-    if (!(ios9 || strstr(ckernv, "2784") || strstr(ckernv, "2783"))) {
+    if (!(ios9 || strstr(ckernv, "2784") || strstr(ckernv, "2783") || strstr(ckernv, "2423"))) {
         _jailbreak_button.enabled = NO;
         [_jailbreak_button setTitle:@"Not Supported" forState:UIControlStateDisabled];
     }

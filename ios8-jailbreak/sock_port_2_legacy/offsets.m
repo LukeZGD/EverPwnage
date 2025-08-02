@@ -129,7 +129,7 @@ int kstruct_offsets_7[] = {
     0x1c,  // TASK_NEXT
     0x20,  // TASK_PREV
     0xa0,  // TASK_ITK_SELF
-    0x1a8, // TASK_ITK_SPACE
+    0x1a0, // TASK_ITK_SPACE
     0x1e8, // TASK_BSDINFO
 
     0x40,  // IPC_PORT_IP_RECEIVER

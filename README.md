@@ -1,6 +1,6 @@
 # EverPwnage
 
-**iOS 8.0-9.3.4 Jailbreak for 32-bit Devices**
+**iOS 7.0-9.3.4 Jailbreak for 32-bit Devices**
 
 ## Usage
 
@@ -26,6 +26,8 @@ EverPwnage has an **"Install Untether" toggle**, which controls the installation
 - **EverUntether**
     - EverUntether is a combination of [jsc_untether](https://github.com/staturnzz/jsc_untether) by staturnz (thanks to their work and assistance) and a [forked version](https://github.com/LukeZGD/daibutsu) of daibutsu untether (based on v1.2.3), updated to replace Trident with sock_port_2_legacy, and some fixes for iOS 9 support.
     - Used on A5(X) devices on iOS 8.0-8.2, and all devices on iOS 8.4 and 9.0-9.3.4.
+- **Lyncis**
+    - Lyncis by staturnz is the untether used on iOS 7.0-7.1.2 for all supported devices.
 
 ## Switching from Other Jailbreaks
 
@@ -37,13 +39,13 @@ These jailbreaks are already untethered and/or incompatible with migration.
 
 ## Building
 
-This project is built using Xcode 10.1 and macOS High Sierra 10.13.6.
+This project is built using Xcode 9.4.1 and macOS High Sierra 10.13.6.
 
 ## Credits
 
 - Special thanks to [kok3shidoll](https://github.com/kok3shidoll/), [Clarity](https://github.com/TheRealClarity/), and [staturnz](https://github.com/staturnzz/) for their incredible work and support. This jailbreak wouldn’t have been possible without them
 - Thanks to [Merculous](https://github.com/Merculous) for testing and feedback
 - exploit: [sock_port_2_legacy](https://github.com/kok3shidoll/sock_port_2_legacy/tree/ios8)
-- untether and patches: [daibutsu untether](https://kok3shidoll.github.io/info/jp.daibutsu.untether841/indexv2.html) ([GitHub repo](https://github.com/kok3shidoll/daibutsu)), [libkok3shi](https://github.com/kok3shidoll/libkok3shi)
+- untether and patches: [daibutsu untether](https://kok3shidoll.github.io/info/jp.daibutsu.untether841/indexv2.html) ([GitHub repo](https://github.com/kok3shidoll/daibutsu)), [libkok3shi](https://github.com/kok3shidoll/libkok3shi), [Lyncis](https://github.com/staturnzz/lyncis)
 - got IOKit stuff and other learnings from: [wtfis](https://github.com/TheRealClarity/wtfis)
 - base of this jailbreak: [openpwnage](https://github.com/0xilis/openpwnage)
