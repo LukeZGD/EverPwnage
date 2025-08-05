@@ -8,12 +8,14 @@
 
 #import "ViewController.h"
 
-#import <sys/utsname.h>
+#include <sys/utsname.h>
 #include <sys/sysctl.h>
 #include <sys/types.h>
 
-#import "jailbreak.h"
-#import "sock_port_2_legacy/sockpuppet.h"
+#include "daibutsu/jailbreak.h"
+#include "postjailbreak.h"
+#include "oob_entry/oob_entry.h"
+#include "oob_entry/memory.h"
 
 @interface ViewController ()
 
@@ -34,8 +36,6 @@ bool install_openssh = false;
 bool reinstall_strap = false;
 bool ios9 = false;
 
-addr_t self_port_address = 0;
-
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view, typically from a nib.
@@ -50,7 +50,7 @@ addr_t self_port_address = 0;
     system_machine = [NSString stringWithCString:systemInfo.machine encoding:NSUTF8StringEncoding];
     system_version = [[UIDevice currentDevice] systemVersion];
     ckernv = strdup(systemInfo.version);
-    printf("%s\n", ckernv);
+    print_log("%s\n", ckernv);
 
     _deviceinfo_label.text = [NSString stringWithFormat:@"%@ | iOS %@", system_machine, system_version];
     NSLog(@"Running on %@ with iOS %@", system_machine, system_version);
@@ -75,7 +75,7 @@ addr_t self_port_address = 0;
 }
 
 - (IBAction)jailbreak_pressed:(id)sender {
-    printf("button pressed\n");
+    print_log("button pressed\n");
 
     _jailbreak_button.enabled = NO;
     [sender setTitle:@"Jailbreaking" forState:UIControlStateDisabled];
@@ -93,32 +93,41 @@ addr_t self_port_address = 0;
 }
 
 - (void)jailbreak {
-    printf("jailbreak\n");
+    print_log("[*] jailbreak\n");
 
-    mach_port_t tfp0;
-    uint32_t kernel_base;
-    tfp0 = exploit(&kernel_base);
-    if (tfp0 == 0) {
-        printf("failed to get tfp0 :(\n");
+    run_exploit();
+    if (kinfo->tfp0 == 0) {
+        print_log("failed to get tfp0 :(\n");
         exit(1);
     }
-    printf("[*]got tfp0: 0x%x\n", tfp0);
-    printf("[*]kbase=0x%08lx\n", kernel_base);
+    print_log("[*] got tfp0: 0x%x\n", kinfo->tfp0);
+    print_log("[*] kbase=0x%08lx\n", kinfo->kernel_base);
 
-    if (is_pmap_patch_success(tfp0, kernel_base)) {
-        printf("pmap patch success!\n");
-    } else {
-        printf("pmap patch failed :(\n");
-        exit(1);
+    uint32_t self_ucred = 0;
+    uint8_t proc_ucred = 0x8c;
+    if (strstr(ckernv, "3248.6") || strstr(ckernv, "3248.5") || strstr(ckernv, "3248.4")) {
+        proc_ucred = 0xa4;
+    } else if (strstr(ckernv, "3248.3") || strstr(ckernv, "3248.2") || strstr(ckernv, "3248.10")) {
+        proc_ucred = 0x98;
     }
+    if (getuid() != 0 || getgid() != 0) {
+        print_log("[*] Set uid to 0 (proc_ucred: %x)...\n", proc_ucred);
+        uint32_t kern_ucred = kread32(kinfo->kern_proc_addr + proc_ucred);
+        self_ucred = kread32(kinfo->self_proc_addr + proc_ucred);
+        kwrite32(kinfo->self_proc_addr + proc_ucred, kern_ucred);
+        setuid(0);
+        setgid(0);
+    }
+    if (getuid() != 0 || getgid() != 0) exit(1);
 
-    printf("patching kernel...\n");
+    print_log("[*] patching kernel...\n");
+    jailbreak_init();
     if (ios9)
-        patch_kernel_90(tfp0, kernel_base);
+        unjail9();
     else
-        patch_kernel(tfp0, kernel_base);
+        unjail8();
 
-    printf("time for postjailbreak...\n");
+    print_log("[*] time for postjailbreak...\n");
     postjailbreak(_untether_toggle.isOn);
 
     dispatch_async(dispatch_get_main_queue(), ^{

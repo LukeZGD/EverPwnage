@@ -7,7 +7,7 @@
 //
 
 #import "SettingsViewController.h"
-#import "jailbreak.h"
+#import "postjailbreak.h"
 
 @interface SettingsViewController ()
 
