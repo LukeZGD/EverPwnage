@@ -13,23 +13,20 @@ Download and sideload the IPA from the [latest release](https://github.com/LukeZ
 
 ## Jailbreak Modes
 
-EverPwnage has an **"Install Untether" toggle**, which controls the installation of **daibutsu untether** or **EverUntether**, depending on the device and iOS version:
+EverPwnage has an **"Install Untether" toggle**, which controls the installation of EverUntether:
 
 - The toggle is **enabled by default** for a fully untethered jailbreak.
 - Users can manually disable the toggle if they prefer to remain semi-untethered.
 
 ## Untether
 
-- **daibutsu untether**
-    - daibutsu untether utilizes dyld_shared_cache patch for bypassing codesigning and sock_port_2_legacy for the untether executable, developed by kok3shidoll (v2.0.3).
-    - Used on A5(X) devices on iOS 8.3-8.4.1, and A6(X) devices on iOS 8.0-8.4.1, except 8.4.
-- **EverUntether**
-    - EverUntether is a combination of [jsc_untether](https://github.com/staturnzz/jsc_untether) by staturnz (thanks to their work and assistance) and a [forked version](https://github.com/LukeZGD/daibutsu) of daibutsu untether (based on v1.2.3), updated to replace Trident with oob_entry, and some fixes for iOS 9 support.
-    - Used on A5(X) devices on iOS 8.0-8.2, and all devices on iOS 8.4 and 9.0-9.3.4.
+EverUntether is a combination of [jsc_untether](https://github.com/staturnzz/jsc_untether) by staturnz (thanks to their work and assistance) and a [forked version](https://github.com/LukeZGD/daibutsu) of daibutsu untether (based on v1.2.3), updated to replace Trident with [oob_entry](https://github.com/staturnzz/oob_entry), and some fixes for iOS 9 support. Compatible with all 32-bit devices on iOS 8.0-9.3.4.
 
 ## Switching from Other Jailbreaks
 
-If you are using other iOS 8 jailbreaks like EtasonJB, HomeDepot, or openpwnage, you can switch to EverPwnage. Jailbreaking with EverPwnage and keeping the "Install Untether" toggle enabled will switch your device to daibutsu untether or EverUntether.
+If you are using other iOS 8 jailbreaks like EtasonJB, HomeDepot, or openpwnage, you can switch to EverPwnage. Jailbreaking with EverPwnage and keeping the "Install Untether" toggle enabled will switch your device to EverUntether.
+
+Devices that already have daibutsu untether installed can also switch to EverUntether. Simply install the EverUntether package from my repo.
 
 Do **not** use EverPwnage if your device is already jailbroken with these: Pangu8, Pangu9, TaiG, PPJailbreak, wtfis
 
@@ -37,7 +34,9 @@ These jailbreaks are already untethered and/or incompatible with migration.
 
 ## Building
 
-This project is built using Xcode 9.4.1/10.1 and macOS High Sierra 10.13.6.
+This project was initially built using Xcode 9.4.1/10.1 and macOS High Sierra 10.13.6.
+
+Versions 1.3 and newer are built using Xcode 13.4.1 and macOS Monterey 12.6.
 
 ## Credits
 
