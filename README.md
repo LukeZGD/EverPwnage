@@ -1,6 +1,6 @@
 # EverPwnage
 
-**iOS 8.0-9.3.4 Jailbreak for 32-bit Devices**
+**iOS 8.0-9.3.6 Jailbreak for 32-bit Devices**
 
 ## Usage
 
@@ -11,14 +11,13 @@ Download and sideload the IPA from the [latest release](https://github.com/LukeZ
 - **A5(X) devices:** iPhone 4S; iPad 2, 3, mini 1; iPod touch 5
 - **A6(X) devices:** iPhone 5, 5C; iPad 4
 
-## Jailbreak Modes
+## Untether
 
-EverPwnage has an **"Install Untether" toggle**, which controls the installation of EverUntether:
+EverPwnage has an **"Install Untether" toggle**, which controls the installation of EverUntether.
 
 - The toggle is **enabled by default** for a fully untethered jailbreak.
 - Users can manually disable the toggle if they prefer to remain semi-untethered.
-
-## Untether
+- **iOS 9.3.5 and 9.3.6 are not untethered**. Semi-untethered only.
 
 EverUntether is a combination of [jsc_untether](https://github.com/staturnzz/jsc_untether) by staturnz (thanks to their work and assistance) and a [forked version](https://github.com/LukeZGD/daibutsu) of daibutsu untether (based on v1.2.3), updated to replace Trident with [oob_entry](https://github.com/staturnzz/oob_entry), and some fixes for iOS 9 support. Compatible with all 32-bit devices on iOS 8.0-9.3.4.
 

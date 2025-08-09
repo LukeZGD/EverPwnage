@@ -11,19 +11,11 @@
 #include <sys/sysctl.h>
 #include <sys/stat.h>
 
+#include "oob_entry/oob_entry.h"
 #include "postjailbreak.h"
 #include "tar.h"
 
 #import "ViewController.h"
-
-bool isA5orA5X(void) {
-    if(strstr(ckernv, "S5L894")) {
-        print_log("A5(X) device\n");
-        return true;
-    }
-    print_log("A6(X) device\n");
-    return false;
-}
 
 void run_cmd(char *cmd, ...) {
     pid_t pid;

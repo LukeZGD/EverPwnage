@@ -6,7 +6,6 @@
 #include <mach/mach.h>
 
 void postjailbreak(void);
-bool isA5orA5X(void);
 
 extern char *ckernv;
 extern bool install_openssh;
