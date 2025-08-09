@@ -112,7 +112,10 @@ make_bl(int pos, int tgt)
 // debugger 1 and 2 for a5(x) 9.x
 uint32_t find_PE_i_can_has_debugger_1(void) {
     uint32_t PE_i_can_has_debugger_1;
-    if (strstr(ckernv, "3248.60")) {
+    if (strstr(ckernv, "3248.61")) {
+        print_log("9.3.5-9.3.6\n");
+        PE_i_can_has_debugger_1 = 0x3a82c4;
+    } else if (strstr(ckernv, "3248.60")) {
         print_log("9.3.3-9.3.4\n");
         PE_i_can_has_debugger_1 = 0x3a82d4;
     } else if (strstr(ckernv, "3248.50")) {

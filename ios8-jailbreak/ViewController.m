@@ -20,7 +20,7 @@
 @interface ViewController ()
 
 @property (weak, nonatomic) IBOutlet UIButton *jailbreak_button;
-@property (weak, nonatomic) IBOutlet UISwitch *untether_toggle;
+@property (weak, nonatomic) IBOutlet UISwitch *tweaks_toggle;
 @property (weak, nonatomic) IBOutlet UILabel *title_label;
 @property (weak, nonatomic) IBOutlet UILabel *version_label;
 @property (weak, nonatomic) IBOutlet UILabel *deviceinfo_label;
@@ -34,6 +34,8 @@ NSString *system_version;
 char *ckernv;
 bool install_openssh = false;
 bool reinstall_strap = false;
+bool untether_on = true;
+bool tweaks_on = true;
 bool ios9 = false;
 
 - (void)viewDidLoad {
@@ -55,22 +57,39 @@ bool ios9 = false;
     _deviceinfo_label.text = [NSString stringWithFormat:@"%@ | iOS %@", system_machine, system_version];
     NSLog(@"Running on %@ with iOS %@", system_machine, system_version);
 
-    // iOS 9.0-9.3.4
-    if ((!strstr(ckernv, "3248.61") && strstr(ckernv, "3248")) || strstr(ckernv, "3247.1.88"))
-        ios9 = true;
+    // disable button and toggle if jailbroken/daibutsu detected (everuntether is also detected as daibutsu)
+    if (access("/.installed_daibutsu", F_OK) != -1 || access("/tmp/.jailbroken", F_OK) != -1) {
+        _tweaks_toggle.enabled = NO;
+        [_tweaks_toggle setOn:NO];
+        _jailbreak_button.enabled = NO;
+        [_jailbreak_button setTitle:@"Jailbroken" forState:UIControlStateDisabled];
+    }
 
-    // iOS 8.0-9.3.4
+    // enable jailbreak button if install_openssh/reinstall_strap is true
+    if (install_openssh || reinstall_strap) {
+        _tweaks_toggle.enabled = YES;
+        [_tweaks_toggle setOn:YES];
+        _jailbreak_button.enabled = YES;
+        [_jailbreak_button setTitle:@"Jailbreak" forState:UIControlStateNormal];
+        if (access("/daibutsu", F_OK) != -1 || access("/everuntether", F_OK) != -1) {
+            untether_on = false;
+        }
+    }
+
+    // disable toggle if 9.3.5/6
+    if (strstr(ckernv, "3248.61")) {
+        untether_on = false;
+    }
+
+    // iOS 9.0-9.3.6
+    if (strstr(ckernv, "3248") || strstr(ckernv, "3247.1.88")) {
+        ios9 = true;
+    }
+
+    // iOS 8.0-9.3.6
     if (!(ios9 || strstr(ckernv, "2784") || strstr(ckernv, "2783"))) {
         _jailbreak_button.enabled = NO;
         [_jailbreak_button setTitle:@"Not Supported" forState:UIControlStateDisabled];
-    }
-
-    // disable button and toggle if jailbroken/daibutsu detected (everuntether is also detected as daibutsu)
-    if (access("/.installed_daibutsu", F_OK) != -1 || access("/tmp/.jailbroken", F_OK) != -1) {
-        _untether_toggle.enabled = NO;
-        [_untether_toggle setOn:NO];
-        _jailbreak_button.enabled = NO;
-        [_jailbreak_button setTitle:@"Jailbroken" forState:UIControlStateDisabled];
     }
 }
 
@@ -128,7 +147,10 @@ bool ios9 = false;
         unjail8();
 
     print_log("[*] time for postjailbreak...\n");
-    postjailbreak(_untether_toggle.isOn);
+    tweaks_on = _tweaks_toggle.isOn;
+    print_log("[*] untether_on: %d\n", untether_on);
+    print_log("[*] tweaks_on: %d\n", tweaks_on);
+    postjailbreak();
 
     dispatch_async(dispatch_get_main_queue(), ^{
         [self showCompletionAlert];
@@ -137,17 +159,37 @@ bool ios9 = false;
 
 // Show an alert after successful jailbreak
 - (void)showCompletionAlert {
-    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Success"
-                                                                   message:@"Jailbreak/untether is now done. Rebooting your device."
-                                                            preferredStyle:UIAlertControllerStyleAlert];
+    if (@available(iOS 8, *)) {
+        // iOS 8 and later
+        UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Success"
+                                                                       message:@"Jailbreak/untether is now done. Rebooting your device."
+                                                                preferredStyle:UIAlertControllerStyleAlert];
 
-    UIAlertAction *okAction = [UIAlertAction actionWithTitle:@"OK"
-                                                       style:UIAlertActionStyleDefault
-                                                     handler:^(UIAlertAction *action) {
-                                                         reboot(0);
-                                                     }];
-    [alert addAction:okAction];
-    [self presentViewController:alert animated:YES completion:nil];
+        UIAlertAction *okAction = [UIAlertAction actionWithTitle:@"OK"
+                                                           style:UIAlertActionStyleDefault
+                                                         handler:^(UIAlertAction *action) {
+                                                             reboot(0);
+                                                         }];
+        [alert addAction:okAction];
+        [self presentViewController:alert animated:YES completion:nil];
+    } else {
+        // iOS 7
+        UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"Success"
+                                                            message:@"Jailbreak/untether is now done. Rebooting your device."
+                                                           delegate:nil
+                                                  cancelButtonTitle:@"OK"
+                                                  otherButtonTitles:nil];
+        [alertView show];
+        // Reboot the device on button press
+        alertView.delegate = self;
+    }
+}
+
+// For iOS 7: handle the reboot in the alert view delegate method
+- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
+    if (buttonIndex == 0) { // "OK" button
+        reboot(0);
+    }
 }
 
 - (IBAction)showSettingsViewController:(id)sender {
@@ -175,13 +217,16 @@ bool ios9 = false;
 }
 
 #pragma mark - SettingsViewControllerDelegate
-- (void)didUpdateTogglesWithFirstToggle:(BOOL)firstToggle secondToggle:(BOOL)secondToggle {
+- (void)didUpdateTogglesWithFirstToggle:(BOOL)firstToggle secondToggle:(BOOL)secondToggle untetherToggle:(BOOL)untetherToggle {
     // Update label with toggle values
     install_openssh = firstToggle;
     reinstall_strap = secondToggle;
-    NSLog([NSString stringWithFormat:@"Toggle 1: %@, Toggle 2: %@",
+    untether_on = untetherToggle;
+    NSLog([NSString stringWithFormat:@"Toggle 1: %@, Toggle 2: %@, Toggle 3: %@",
            firstToggle ? @"ON" : @"OFF",
-           secondToggle ? @"ON" : @"OFF"]);
+          secondToggle ? @"ON" : @"OFF",
+        untetherToggle ? @"ON" : @"OFF"]);
+    [self viewDidLoad];
 }
 
 @end

@@ -85,7 +85,7 @@ char *getFilePath(const char *fileName) {
     return [filePathObj UTF8String];
 }
 
-void postjailbreak(bool untether_on) {
+void postjailbreak(void) {
     print_log("[*] remounting rootfs\n");
     char* nmr = strdup("/dev/disk0s1s1");
     int mntr = mount("hfs", "/", MNT_UPDATE, &nmr);
@@ -97,7 +97,7 @@ void postjailbreak(bool untether_on) {
     }
     sync();
 
-    bool InstallBootstrap = false;
+    bool install_bootstrap = false;
     if (!((access("/.installed-openpwnage", F_OK) != -1) || (access("/.installed_everpwnage", F_OK) != -1) ||
           (access("/.installed_home_depot", F_OK) != -1) || (access("/untether/untether", F_OK) != -1) ||
           (access("/.installed_daibutsu", F_OK) != -1)) || reinstall_strap) {
@@ -141,7 +141,7 @@ void postjailbreak(bool untether_on) {
         sync();
 
         print_log("bootstrap installed\n");
-        InstallBootstrap = true;
+        install_bootstrap = true;
     } else {
         print_log("bootstrap already installed\n");
     }
@@ -159,11 +159,13 @@ void postjailbreak(bool untether_on) {
         run_tar("%s", getFilePath("openssh.tar"));
     }
 
-    print_log("loading launch daemons\n");
-    run_cmd("/bin/launchctl load /Library/LaunchDaemons/*");
-    run_cmd("/etc/rc.d/*");
+    if (tweaks_on) {
+        print_log("loading launch daemons\n");
+        run_cmd("/bin/launchctl load /Library/LaunchDaemons/*");
+        run_cmd("/etc/rc.d/*");
+    }
 
-    if (InstallBootstrap) {
+    if (install_bootstrap) {
         print_log("running uicache\n");
         run_cmd("su -c uicache mobile");
     }

@@ -5,11 +5,13 @@
 
 #include <mach/mach.h>
 
-void postjailbreak(bool untether_on);
+void postjailbreak(void);
 bool isA5orA5X(void);
 
 extern char *ckernv;
 extern bool install_openssh;
 extern bool reinstall_strap;
+extern bool untether_on;
+extern bool tweaks_on;
 
 #endif /* jailbreak_h */

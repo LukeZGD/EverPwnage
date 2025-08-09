@@ -11,7 +11,8 @@
 @protocol SettingsViewControllerDelegate <NSObject>
 
 - (void)didUpdateTogglesWithFirstToggle:(BOOL)firstToggle
-                           secondToggle:(BOOL)secondToggle;
+                           secondToggle:(BOOL)secondToggle
+                         untetherToggle:(BOOL)untetherToggle;
 
 @end
 
@@ -21,5 +22,6 @@
 
 @property (weak, nonatomic) IBOutlet UISwitch *firstToggleSwitch;
 @property (weak, nonatomic) IBOutlet UISwitch *secondToggleSwitch;
+@property (weak, nonatomic) IBOutlet UISwitch *untetherSwitch;
 
 @end

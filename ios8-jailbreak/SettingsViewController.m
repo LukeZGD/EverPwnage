@@ -30,6 +30,12 @@
     
     [_firstToggleSwitch setOn:install_openssh];
     [_secondToggleSwitch setOn:reinstall_strap];
+    [_untetherSwitch setOn:untether_on];
+    
+    if (strstr(ckernv, "3248.61")) {
+        _untetherSwitch.enabled = NO;
+        [_untetherSwitch setOn:NO];
+    }
 }
 
 - (IBAction)toggleValueChanged:(id)sender {
@@ -39,9 +45,10 @@
 #pragma mark - Shared Dismiss Logic
 - (void)dismissAction {
     // Notify the delegate with the toggle values
-    if ([self.delegate respondsToSelector:@selector(didUpdateTogglesWithFirstToggle:secondToggle:)]) {
+    if ([self.delegate respondsToSelector:@selector(didUpdateTogglesWithFirstToggle:secondToggle:untetherToggle:)]) {
         [self.delegate didUpdateTogglesWithFirstToggle:self.firstToggleSwitch.isOn
-                                          secondToggle:self.secondToggleSwitch.isOn];
+                                          secondToggle:self.secondToggleSwitch.isOn
+                                        untetherToggle:self.untetherSwitch.isOn];
     }
 
     // Dismiss the view controller
