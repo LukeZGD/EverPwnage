@@ -90,9 +90,8 @@ void postjailbreak(void) {
     sync();
 
     bool install_bootstrap = false;
-    if (!((access("/.installed-openpwnage", F_OK) != -1) || (access("/.installed_everpwnage", F_OK) != -1) ||
-          (access("/.installed_home_depot", F_OK) != -1) || (access("/untether/untether", F_OK) != -1) ||
-          (access("/.installed_daibutsu", F_OK) != -1)) || reinstall_strap) {
+    if (!(access("/Applications/Cydia.app/Cydia", F_OK) != -1 ||
+          access("/private/var/lib/dpkg/status", F_OK) != -1 || reinstall_strap)) {
         print_log("installing bootstrap...\n");
 
         FILE *f1 = fopen("/bin/tar", "wb");

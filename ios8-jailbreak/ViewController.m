@@ -24,6 +24,7 @@
 @property (weak, nonatomic) IBOutlet UILabel *title_label;
 @property (weak, nonatomic) IBOutlet UILabel *version_label;
 @property (weak, nonatomic) IBOutlet UILabel *deviceinfo_label;
+@property (weak, nonatomic) IBOutlet UIButton *more_button;
 
 @end
 
@@ -57,21 +58,22 @@ bool ios9 = false;
     _deviceinfo_label.text = [NSString stringWithFormat:@"%@ | iOS %@", system_machine, system_version];
     NSLog(@"Running on %@ with iOS %@", system_machine, system_version);
 
-    // disable button and toggle if jailbroken/daibutsu detected (everuntether is also detected as daibutsu)
-    if (access("/.installed_daibutsu", F_OK) != -1 || access("/tmp/.jailbroken", F_OK) != -1) {
+    // disable button and toggle if jailbroken/untether detected (everuntether is also detected as daibutsu)
+    if (access("/daibutsu", F_OK) != -1 || (access("/everuntether", F_OK) != -1) ||
+        access("/untether/untether", F_OK) != -1 || (access("/tmp/.jailbroken", F_OK) != -1)) {
         _tweaks_toggle.enabled = NO;
         [_tweaks_toggle setOn:NO];
         _jailbreak_button.enabled = NO;
         [_jailbreak_button setTitle:@"Jailbroken" forState:UIControlStateDisabled];
     }
 
-    // enable jailbreak button if install_openssh/reinstall_strap is true
-    if (install_openssh || reinstall_strap) {
+    // enable jailbreak button if reinstall_strap is true
+    if (reinstall_strap) {
         _tweaks_toggle.enabled = YES;
         [_tweaks_toggle setOn:YES];
         _jailbreak_button.enabled = YES;
         [_jailbreak_button setTitle:@"Jailbreak" forState:UIControlStateNormal];
-        if (access("/daibutsu", F_OK) != -1 || access("/everuntether", F_OK) != -1) {
+        if (access("/daibutsu", F_OK) != -1 || access("/everuntether", F_OK) != -1 || access("/untether/untether", F_OK) != -1) {
             untether_on = false;
         }
     }
@@ -90,6 +92,12 @@ bool ios9 = false;
     if (!(ios9 || strstr(ckernv, "2784") || strstr(ckernv, "2783"))) {
         _jailbreak_button.enabled = NO;
         [_jailbreak_button setTitle:@"Not Supported" forState:UIControlStateDisabled];
+    }
+
+    if (strstr(ckernv, "2423")) {
+        _tweaks_toggle.enabled = NO;
+        [_tweaks_toggle setOn:YES];
+        _more_button.enabled = NO;
     }
 }
 

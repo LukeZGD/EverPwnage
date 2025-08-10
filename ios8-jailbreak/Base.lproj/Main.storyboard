@@ -21,7 +21,7 @@
                         <rect key="frame" x="0.0" y="0.0" width="320" height="480"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Jailbreak for iOS 8.0-9.3.4 32-bit" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="vb3-L8-LJK">
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Jailbreak for iOS 8.0-9.3.6 32-bit" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="vb3-L8-LJK">
                                 <rect key="frame" x="34.5" y="166" width="252" height="20.5"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                 <nil key="textColor"/>
@@ -70,7 +70,7 @@
                             </label>
                             <button opaque="NO" contentMode="scaleToFill" misplaced="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Pcp-A4-uVQ">
                                 <rect key="frame" x="106" y="217" width="121" height="47"/>
-                                <fontDescription key="fontDescription" name=".SFNSDisplay" family=".SF NS Display" pointSize="30"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="30"/>
                                 <state key="normal" title="Jailbreak"/>
                                 <connections>
                                     <action selector="jailbreak_pressed:" destination="BYZ-38-t0r" eventType="touchUpInside" id="3qP-j7-IeJ"/>
@@ -105,6 +105,7 @@
                         <outlet property="title_label" destination="tuK-1B-Ke5" id="rfm-se-hRL"/>
                         <outlet property="tweaks_toggle" destination="vLV-AI-LSZ" id="8jD-0g-xbo"/>
                         <outlet property="version_label" destination="sNt-JJ-Iw8" id="Jlt-Uc-lQX"/>
+                        <outlet property="more_button" destination="WKS-Zu-g2z" id="wat-is-dis"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>

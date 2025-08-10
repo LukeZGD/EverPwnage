@@ -23,13 +23,11 @@ EverUntether is a combination of [jsc_untether](https://github.com/staturnzz/jsc
 
 ## Switching from Other Jailbreaks
 
-If you are using other iOS 8 jailbreaks like EtasonJB, HomeDepot, or openpwnage, you can switch to EverPwnage. Jailbreaking with EverPwnage and keeping the "Install Untether" toggle enabled will switch your device to EverUntether.
+If you are using other semi-untethered jailbreaks for 32-bit devices on iOS 8-9, you can switch to EverPwnage.
 
-Devices that already have daibutsu untether installed can also switch to EverUntether. Simply install the EverUntether package from my repo.
+Devices that already have EtasonJB or daibutsu untether installed can also switch to EverUntether. Simply install the EverUntether package from my repo: https://lukezgd.github.io/repo
 
-Do **not** use EverPwnage if your device is already jailbroken with these: Pangu8, Pangu9, TaiG, PPJailbreak, wtfis
-
-These jailbreaks are already untethered and/or incompatible with migration.
+You cannot use EverPwnage/EverUntether if your device is already jailbroken with these: Pangu8, Pangu9, TaiG, PPJailbreak, wtfis. These jailbreaks are incompatible for migration.
 
 ## Building
 
