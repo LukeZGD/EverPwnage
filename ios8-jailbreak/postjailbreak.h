@@ -5,6 +5,7 @@
 
 #include <mach/mach.h>
 
+bool isA5orA5X(void);
 void postjailbreak(void);
 
 extern char *ckernv;

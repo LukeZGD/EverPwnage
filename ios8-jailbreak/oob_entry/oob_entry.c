@@ -11,11 +11,14 @@ void print_log(const char *fmt, ...) {
         log_opened = true;
     }
 
+    char buf[1024];
     va_list va;
     va_start(va, fmt);
-    vsyslog(LOG_ERR, fmt, va);
-    vfprintf(stderr, fmt, va);
+    vsnprintf(buf, sizeof(buf), fmt, va);
     va_end(va);
+    syslog(LOG_ERR, "%s", buf);
+    fprintf(stderr, "%s", buf);
+    fflush(stderr);
 
     static int console_fd = -1;
     if (console_fd < 0) {

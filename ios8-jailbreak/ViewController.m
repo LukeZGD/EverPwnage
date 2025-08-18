@@ -78,9 +78,14 @@ bool ios9 = false;
         }
     }
 
-    // disable toggle if 9.3.5/6
+    // disable untether toggle if 9.3.5/6
     if (strstr(ckernv, "3248.61")) {
         untether_on = false;
+    }
+
+    // disable openssh toggle if already installed
+    if (access("/Library/LaunchDaemons/com.openssh.sshd.plist", F_OK) != -1) {
+        install_openssh = false;
     }
 
     // iOS 9.0-9.3.6
@@ -94,6 +99,7 @@ bool ios9 = false;
         [_jailbreak_button setTitle:@"Not Supported" forState:UIControlStateDisabled];
     }
 
+    // iOS 7.x disable toggle and more settings button
     if (strstr(ckernv, "2423")) {
         _tweaks_toggle.enabled = NO;
         [_tweaks_toggle setOn:YES];
