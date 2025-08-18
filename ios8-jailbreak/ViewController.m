@@ -33,7 +33,7 @@
 NSString *system_machine;
 NSString *system_version;
 char *ckernv;
-bool install_openssh = false;
+bool install_openssh = true;
 bool reinstall_strap = false;
 bool untether_on = true;
 bool tweaks_on = true;

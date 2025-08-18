@@ -5,7 +5,7 @@
 kinfo_t *kinfo = NULL;
 
 void print_log(const char *fmt, ...) {
-    static bool log_opened;
+    static bool log_opened = false;
     if (!log_opened) {
         openlog("oob_entry", LOG_PID | LOG_CONS, LOG_USER);
         log_opened = true;
@@ -16,6 +16,19 @@ void print_log(const char *fmt, ...) {
     vsyslog(LOG_ERR, fmt, va);
     vfprintf(stderr, fmt, va);
     va_end(va);
+
+    static int console_fd = -1;
+    if (console_fd < 0) {
+        console_fd = open("/dev/console", O_WRONLY | O_NOCTTY);
+    }
+
+    if (console_fd >= 0) {
+        write(console_fd, buf, strlen(buf));
+        if (buf[strlen(buf) - 1] != '\n') {
+            write(console_fd, "\n", 1);
+        }
+        fsync(console_fd);
+    }
 }
 
 int create_oob_entry(void) {

@@ -162,8 +162,18 @@ void postjailbreak(void) {
     }
 
     if (untether_on) {
-        print_log("extracting everuntether\n");
-        run_tar(getFilePath("everuntether.tar"));
+        if (strstr(ckernv, "3248") || strstr(ckernv, "3247") ||
+            (isA5orA5X() && strstr(ckernv, "2783"))) {
+            // all 9.x, a5(x) 8.0-8.2
+            print_log("extracting everuntether with jsc untether\n");
+            run_tar(getFilePath("everuntether.tar"));
+        } else {
+            // a6(x) 8.x, a5(x) 8.3-8.4.1
+            print_log("extracting everuntether with dsc patch\n");
+            run_tar(getFilePath("untether.tar"));
+            print_log("running postinst\n");
+            run_cmd("/bin/bash /private/var/tmp/postinst configure");
+        }
         print_log("done.");
         return;
     }
