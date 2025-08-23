@@ -174,7 +174,7 @@ bool ios9 = false;
 // Show an alert after successful jailbreak
 - (void)showCompletionAlert {
     if (@available(iOS 8, *)) {
-        // iOS 8 and later
+        // iOS 8+
         UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Success"
                                                                        message:@"Jailbreak/untether is now done. Rebooting your device."
                                                                 preferredStyle:UIAlertControllerStyleAlert];
@@ -188,20 +188,20 @@ bool ios9 = false;
         [self presentViewController:alert animated:YES completion:nil];
     } else {
         // iOS 7
-        UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"Success"
-                                                            message:@"Jailbreak/untether is now done. Rebooting your device."
-                                                           delegate:nil
-                                                  cancelButtonTitle:@"OK"
-                                                  otherButtonTitles:nil];
-        [alertView show];
-        // Reboot the device on button press
-        alertView.delegate = self;
+        dispatch_async(dispatch_get_main_queue(), ^{
+            UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"Success"
+                                                                message:@"Jailbreak/untether is now done. Rebooting your device."
+                                                               delegate:self
+                                                      cancelButtonTitle:@"OK"
+                                                      otherButtonTitles:nil];
+            [alertView show];
+        });
     }
 }
 
-// For iOS 7: handle the reboot in the alert view delegate method
+// Delegate callback for iOS 7 UIAlertView
 - (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
-    if (buttonIndex == 0) { // "OK" button
+    if (buttonIndex == alertView.cancelButtonIndex) {
         reboot(0);
     }
 }
