@@ -59,8 +59,11 @@ bool ios9 = false;
     NSLog(@"Running on %@ with iOS %@", system_machine, system_version);
 
     // disable button and toggle if jailbroken/untether detected (everuntether is also detected as daibutsu)
-    if (access("/daibutsu", F_OK) != -1 || (access("/everuntether", F_OK) != -1) ||
-        access("/untether/untether", F_OK) != -1 || (access("/tmp/.jailbroken", F_OK) != -1)) {
+    if (access("/daibutsu", F_OK) == 0 ||
+        access("/everuntether", F_OK) == 0 ||
+        access("/untether/untether", F_OK) == 0 ||
+        access("/tmp/.jailbroken", F_OK) == 0) {
+
         _tweaks_toggle.enabled = NO;
         [_tweaks_toggle setOn:NO];
         _jailbreak_button.enabled = NO;
@@ -73,7 +76,10 @@ bool ios9 = false;
         [_tweaks_toggle setOn:YES];
         _jailbreak_button.enabled = YES;
         [_jailbreak_button setTitle:@"Jailbreak" forState:UIControlStateNormal];
-        if (access("/daibutsu", F_OK) != -1 || access("/everuntether", F_OK) != -1 || access("/untether/untether", F_OK) != -1) {
+        if (access("/daibutsu", F_OK) == 0 ||
+            access("/everuntether", F_OK) == 0 ||
+            access("/untether/untether", F_OK) == 0) {
+
             untether_on = false;
         }
     }
@@ -84,7 +90,7 @@ bool ios9 = false;
     }
 
     // disable openssh toggle if already installed
-    if (access("/Library/LaunchDaemons/com.openssh.sshd.plist", F_OK) != -1) {
+    if (access("/Library/LaunchDaemons/com.openssh.sshd.plist", F_OK) == 0) {
         install_openssh = false;
     }
 
@@ -128,10 +134,15 @@ bool ios9 = false;
 - (void)jailbreak {
     print_log("[*] jailbreak\n");
 
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [_jailbreak_button setTitle:@"Running exploit" forState:UIControlStateDisabled];
+    });
     run_exploit();
     if (kinfo->tfp0 == 0) {
-        print_log("failed to get tfp0 :(\n");
-        exit(1);
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [_jailbreak_button setTitle:@"Exploit failed" forState:UIControlStateDisabled];
+        });
+        return;
     }
     print_log("[*] got tfp0: 0x%x\n", kinfo->tfp0);
     print_log("[*] kbase=0x%08lx\n", kinfo->kernel_base);
@@ -144,6 +155,9 @@ bool ios9 = false;
         proc_ucred = 0x98;
     }
     if (getuid() != 0 || getgid() != 0) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [_jailbreak_button setTitle:@"Set uid to 0" forState:UIControlStateDisabled];
+        });
         print_log("[*] Set uid to 0 (proc_ucred: %x)...\n", proc_ucred);
         uint32_t kern_ucred = kread32(kinfo->kern_proc_addr + proc_ucred);
         self_ucred = kread32(kinfo->self_proc_addr + proc_ucred);
@@ -151,8 +165,17 @@ bool ios9 = false;
         setuid(0);
         setgid(0);
     }
-    if (getuid() != 0 || getgid() != 0) exit(1);
+    if (getuid() != 0 || getgid() != 0) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [_jailbreak_button setTitle:@"setuid failed" forState:UIControlStateDisabled];
+        });
+        print_log("[*] setuid failed\n");
+        return;
+    }
 
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [_jailbreak_button setTitle:@"Patching kernel" forState:UIControlStateDisabled];
+    });
     print_log("[*] patching kernel...\n");
     jailbreak_init();
     if (ios9)
@@ -162,13 +185,67 @@ bool ios9 = false;
 
     print_log("[*] time for postjailbreak...\n");
     tweaks_on = _tweaks_toggle.isOn;
+    // disable untether toggle again if 9.3.5/6 just to be sure
+    if (strstr(ckernv, "3248.61")) {
+        untether_on = false;
+    }
     print_log("[*] untether_on: %d\n", untether_on);
     print_log("[*] tweaks_on: %d\n", tweaks_on);
-    postjailbreak();
+    print_log("[*] reinstall_strap: %d\n", reinstall_strap);
 
     dispatch_async(dispatch_get_main_queue(), ^{
-        [self showCompletionAlert];
+        [_jailbreak_button setTitle:@"Remounting rootfs" forState:UIControlStateDisabled];
     });
+    postjailbreak_remount();
+
+    if (!postjailbreak_check_status() || reinstall_strap) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [_jailbreak_button setTitle:@"Installing bootstrap" forState:UIControlStateDisabled];
+        });
+        postjailbreak_bootstrap();
+
+    }
+
+    if (!postjailbreak_check_sbshowapp()) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [_jailbreak_button setTitle:@"Fixing icons" forState:UIControlStateDisabled];
+        });
+        postjailbreak_add_sbshowapp();
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [_jailbreak_button setTitle:@"Running uicache" forState:UIControlStateDisabled];
+        });
+        postjailbreak_uicache();
+    }
+
+    if (install_openssh) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [_jailbreak_button setTitle:@"Installing OpenSSH" forState:UIControlStateDisabled];
+        });
+        postjailbreak_openssh();
+    }
+
+    if (tweaks_on) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [_jailbreak_button setTitle:@"Loading daemons" forState:UIControlStateDisabled];
+        });
+        postjailbreak_tweaks();
+    }
+
+    if (untether_on) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [_jailbreak_button setTitle:@"Installing untether" forState:UIControlStateDisabled];
+        });
+        postjailbreak_untether();
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self showCompletionAlert];
+        });
+        return;
+    }
+
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [_jailbreak_button setTitle:@"Respringing" forState:UIControlStateDisabled];
+    });
+    postjailbreak_respring();
 }
 
 // Show an alert after successful jailbreak

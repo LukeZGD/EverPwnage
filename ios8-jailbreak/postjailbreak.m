@@ -77,7 +77,6 @@ void run_tar(char *cmd, ...) {
         } while (!WIFEXITED(status) && !WIFSIGNALED(status));
     } else {
         print_log("posix_spawn: %s\n", strerror(status));
-        exit(1);
     }
 }
 
@@ -86,7 +85,7 @@ char *getFilePath(const char *fileName) {
     return [filePathObj UTF8String];
 }
 
-void postjailbreak(void) {
+void postjailbreak_remount(void) {
     print_log("[*] remounting rootfs\n");
     char* nmr = strdup("/dev/disk0s1s1");
     int mntr = mount("hfs", "/", MNT_UPDATE, &nmr);
@@ -97,102 +96,128 @@ void postjailbreak(void) {
         usleep(100000);
     }
     sync();
+}
 
-    bool install_bootstrap = false;
-    if (!(access("/Applications/Cydia.app/Cydia", F_OK) != -1 ||
-          access("/private/var/lib/dpkg/status", F_OK) != -1 || reinstall_strap)) {
-        print_log("installing bootstrap...\n");
+void postjailbreak_bootstrap(void) {
+    print_log("installing bootstrap...\n");
 
-        FILE *f1 = fopen("/bin/tar", "wb");
-        if (f1) {
-            size_t r1 = fwrite(tar, sizeof tar[0], tar_len, f1);
-            print_log("wrote %zu elements out of %d requested\n", r1,  tar_len);
-            fclose(f1);
-        }
-
-        chmod("/bin/tar", 0777);
-        print_log("chmod'd tar_path\n");
-
-        print_log("extracting bootstrap\n");
-        run_tar("%s", getFilePath("bootstrap.tar"));
-
-        print_log("disabling stashing\n");
-        run_cmd("/bin/touch /.cydia_no_stash");
-
-        print_log("copying launchctl\n");
-        run_cmd("/bin/cp -p %s /bin/launchctl", getFilePath("launchctl"));
-
-        print_log("fixing perms...\n");
-        chmod("/bin/tar", 0755);
-        chmod("/bin/launchctl", 0755);
-        chmod("/private", 0777);
-        chmod("/private/var", 0777);
-        chmod("/private/var/mobile", 0777);
-        chmod("/private/var/mobile/Library", 0777);
-        chmod("/private/var/mobile/Library/Preferences", 0777);
-        mkdir("/Library/LaunchDaemons", 0755);
-        FILE* fp = fopen("/private/etc/apt/sources.list.d/LukeZGD.list", "w");
-        fprintf(fp, "deb https://lukezgd.github.io/repo ./\n");
-        fclose(fp);
-        fp = fopen("/.installed_everpwnage", "w");
-        fprintf(fp, "do **NOT** delete this file, it's important. it's how we detect if the bootstrap was installed.\n");
-        fclose(fp);
-
-        sync();
-
-        print_log("bootstrap installed\n");
-        install_bootstrap = true;
-    } else {
-        print_log("bootstrap already installed\n");
+    FILE *f1 = fopen("/bin/tar", "wb");
+    if (f1) {
+        size_t r1 = fwrite(tar, sizeof tar[0], tar_len, f1);
+        print_log("wrote %zu elements out of %d requested\n", r1,  tar_len);
+        fclose(f1);
     }
 
+    chmod("/bin/tar", 0777);
+    print_log("chmod'd tar_path\n");
+
+    print_log("extracting bootstrap\n");
+    run_tar("%s", getFilePath("bootstrap.tar"));
+
+    print_log("disabling stashing\n");
+    run_cmd("/bin/touch /.cydia_no_stash");
+
+    print_log("copying launchctl\n");
+    run_cmd("/bin/cp -p %s /bin/launchctl", getFilePath("launchctl"));
+
+    print_log("fixing perms...\n");
+    chmod("/bin/tar", 0755);
+    chmod("/bin/launchctl", 0755);
+    chmod("/private", 0777);
+    chmod("/private/var", 0777);
+    chmod("/private/var/mobile", 0777);
+    chmod("/private/var/mobile/Library", 0777);
+    chmod("/private/var/mobile/Library/Preferences", 0777);
+    mkdir("/Library/LaunchDaemons", 0755);
+    FILE* fp = fopen("/private/etc/apt/sources.list.d/LukeZGD.list", "w");
+    fprintf(fp, "deb https://lukezgd.github.io/repo ./\n");
+    fclose(fp);
+    fp = fopen("/.installed_everpwnage", "w");
+    fprintf(fp, "do **NOT** delete this file, it's important. it's how we detect if the bootstrap was installed.\n");
+    fclose(fp);
+
+    sync();
+
+    print_log("bootstrap installed\n");
+}
+
+bool postjailbreak_check_status(void) {
+    FILE *f = fopen("/private/var/lib/dpkg/status", "r");
+    if (!f) {
+        return false;
+    }
+
+    char buffer[512];
+    bool found = false;
+
+    while (fgets(buffer, sizeof(buffer), f) != NULL) {
+        if (strstr(buffer, "Package: base") != NULL) {
+            found = true;
+            break;
+        }
+    }
+
+    fclose(f);
+    return found;
+}
+
+bool postjailbreak_check_sbshowapp(void) {
+    NSDictionary* md = [[NSDictionary alloc] initWithContentsOfFile:@"/var/mobile/Library/Preferences/com.apple.springboard.plist"];
+    BOOL keyState = [[md objectForKey:@"SBShowNonDefaultSystemApps"] boolValue];
+    if (keyState){
+        return true;
+    }
+    return false;
+}
+
+void postjailbreak_add_sbshowapp(void) {
     print_log("allowing jailbreak apps to be shown\n");
     NSMutableDictionary *md = [[NSMutableDictionary alloc] initWithContentsOfFile:@"/var/mobile/Library/Preferences/com.apple.springboard.plist"];
     [md setObject:[NSNumber numberWithBool:YES] forKey:@"SBShowNonDefaultSystemApps"];
     [md writeToFile:@"/var/mobile/Library/Preferences/com.apple.springboard.plist" atomically:YES];
+    chown("/var/mobile/Library/Preferences/com.apple.springboard.plist", 501, 501);
 
     print_log("restarting cfprefs\n");
-    run_cmd("/usr/bin/killall -9 cfprefsd &");
+    run_cmd("/usr/bin/killall -9 cfprefsd");
+}
 
-    if (install_openssh) {
-        print_log("extracting openssh\n");
-        run_tar("%s", getFilePath("openssh.tar"));
+void postjailbreak_uicache(void) {
+    print_log("running uicache\n");
+    run_cmd("su -c uicache mobile");
+}
+
+void postjailbreak_untether(void) {
+    if (strstr(ckernv, "3248") || strstr(ckernv, "3247") ||
+        (isA5orA5X() && strstr(ckernv, "2783"))) {
+        // all 9.x, a5(x) 8.0-8.2
+        print_log("extracting everuntether with jsc untether\n");
+        run_tar(getFilePath("everuntether.tar"));
+    } else if (strstr(ckernv, "2784") || strstr(ckernv, "2783")) {
+        // a6(x) 8.x, a5(x) 8.3-8.4.1
+        print_log("extracting everuntether with dsc patch\n");
+        run_tar(getFilePath("untether.tar"));
+        print_log("running postinst\n");
+        run_cmd("/bin/bash /private/var/tmp/postinst configure");
     }
+    print_log("done.");
+}
 
-    if (tweaks_on) {
-        print_log("loading launch daemons\n");
-        run_cmd("/bin/launchctl load /Library/LaunchDaemons/*");
-        run_cmd("/etc/rc.d/*");
-    }
+void postjailbreak_openssh(void) {
+    print_log("extracting openssh\n");
+    run_tar("%s", getFilePath("openssh.tar"));
+}
 
-    if (install_bootstrap) {
-        print_log("running uicache\n");
-        run_cmd("su -c uicache mobile");
-    }
+void postjailbreak_tweaks(void) {
+    print_log("loading launch daemons\n");
+    run_cmd("/bin/launchctl load /Library/LaunchDaemons/*");
+    run_cmd("/etc/rc.d/*");
+}
 
-    if (untether_on) {
-        if (strstr(ckernv, "3248") || strstr(ckernv, "3247") ||
-            (isA5orA5X() && strstr(ckernv, "2783"))) {
-            // all 9.x, a5(x) 8.0-8.2
-            print_log("extracting everuntether with jsc untether\n");
-            run_tar(getFilePath("everuntether.tar"));
-        } else {
-            // a6(x) 8.x, a5(x) 8.3-8.4.1
-            print_log("extracting everuntether with dsc patch\n");
-            run_tar(getFilePath("untether.tar"));
-            print_log("running postinst\n");
-            run_cmd("/bin/bash /private/var/tmp/postinst configure");
-        }
-        print_log("done.");
-        return;
-    }
-
+void postjailbreak_respring(void) {
     FILE* fp = fopen("/tmp/.jailbroken", "w");
     fprintf(fp, "jailbroken.\n");
     fclose(fp);
 
     print_log("respringing\n");
     run_cmd("(killall -9 backboardd) &");
-
-    return;
 }
