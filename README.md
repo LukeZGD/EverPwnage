@@ -4,7 +4,9 @@
 
 ## Usage
 
-Download and sideload the IPA from the [latest release](https://github.com/LukeZGD/EverPwnage/releases/latest).
+Download and sideload the IPA from the [latest release](https://github.com/LukeZGD/EverPwnage/releases/latest) using [Sideloadly](https://sideloadly.io/).
+
+On Linux, use [Legacy iOS Kit](https://github.com/LukeZGD/Legacy-iOS-Kit) to sideload the IPA.
 
 ## Supported Devices
 
