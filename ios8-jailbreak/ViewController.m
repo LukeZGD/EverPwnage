@@ -137,7 +137,8 @@ bool ios9 = false;
     dispatch_async(dispatch_get_main_queue(), ^{
         [_jailbreak_button setTitle:@"Running exploit" forState:UIControlStateDisabled];
     });
-    run_exploit();
+    run_exploit(5);
+
     if (kinfo->tfp0 == 0) {
         dispatch_async(dispatch_get_main_queue(), ^{
             [_jailbreak_button setTitle:@"Exploit failed" forState:UIControlStateDisabled];

