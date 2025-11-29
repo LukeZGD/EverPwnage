@@ -455,7 +455,7 @@ void failed(void){
 int main(void){
     jailbreak_init();
 
-    run_exploit(1020);
+    run_exploit(1024);
 
     if(kinfo->tfp0){
         print_log("[*] got tfp0: %x\n", kinfo->tfp0);
