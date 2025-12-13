@@ -224,7 +224,11 @@ bool uicache_only = false;
     });
     postjailbreak_remount();
 
-    if (!postjailbreak_check_status() || reinstall_strap) {
+    if (!postjailbreak_check_status()) {
+        reinstall_strap = true;
+    }
+
+    if (reinstall_strap) {
         dispatch_async(dispatch_get_main_queue(), ^{
             [_jailbreak_button setTitle:@"Installing bootstrap" forState:UIControlStateDisabled];
         });
@@ -232,7 +236,7 @@ bool uicache_only = false;
 
     }
 
-    if (!postjailbreak_check_sbshowapp() || !postjailbreak_check_status() || reinstall_strap) {
+    if (!postjailbreak_check_sbshowapp() || reinstall_strap) {
         dispatch_async(dispatch_get_main_queue(), ^{
             [_jailbreak_button setTitle:@"Fixing icons" forState:UIControlStateDisabled];
         });
