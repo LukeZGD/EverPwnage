@@ -38,6 +38,7 @@ bool reinstall_strap = false;
 bool untether_on = true;
 bool tweaks_on = true;
 bool ios9 = false;
+bool uicache_only = false;
 
 - (void)viewDidLoad {
     [super viewDidLoad];
@@ -66,8 +67,8 @@ bool ios9 = false;
 
         _tweaks_toggle.enabled = NO;
         [_tweaks_toggle setOn:NO];
-        _jailbreak_button.enabled = NO;
-        [_jailbreak_button setTitle:@"Jailbroken" forState:UIControlStateDisabled];
+        [_jailbreak_button setTitle:@"Run uicache" forState:UIControlStateNormal];
+        uicache_only = true;
     }
 
     // enable jailbreak button if reinstall_strap is true
@@ -183,6 +184,21 @@ bool ios9 = false;
         return;
     }
 
+    if (uicache_only) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [_jailbreak_button setTitle:@"Fixing icons" forState:UIControlStateDisabled];
+        });
+        postjailbreak_add_sbshowapp();
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [_jailbreak_button setTitle:@"Running uicache" forState:UIControlStateDisabled];
+        });
+        postjailbreak_uicache();
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [_jailbreak_button setTitle:@"Done" forState:UIControlStateDisabled];
+        });
+        return;
+    }
+
     dispatch_async(dispatch_get_main_queue(), ^{
         [_jailbreak_button setTitle:@"Patching kernel" forState:UIControlStateDisabled];
     });
@@ -216,7 +232,7 @@ bool ios9 = false;
 
     }
 
-    if (!postjailbreak_check_sbshowapp()) {
+    if (!postjailbreak_check_sbshowapp() || !postjailbreak_check_status() || reinstall_strap) {
         dispatch_async(dispatch_get_main_queue(), ^{
             [_jailbreak_button setTitle:@"Fixing icons" forState:UIControlStateDisabled];
         });
