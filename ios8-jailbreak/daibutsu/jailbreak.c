@@ -216,7 +216,7 @@ void unjail8(void){
     print_log("[*] sandbox\n");
     kwrite32_exec(sandbox_call_i_can_has_debugger, 0xbf00bf00);
 
-    uint32_t sbopsoffset = kbase + find_sbops(kbase, kdata, ksize);
+    uint32_t sbopsoffset = kbase + find_sandbox_mac_policy_ops(kbase, kdata, ksize);
 
     print_log("nuking sandbox\n");
     kwrite32_exec(sbopsoffset + offsetof(struct mac_policy_ops, mpo_vnode_check_ioctl), 0);
@@ -377,7 +377,7 @@ void unjail9(void){
     print_log("[*] sandbox\n");
     kwrite32_exec(sandbox_call_i_can_has_debugger, 0xbf00bf00);
 
-    uint32_t sbopsoffset = kbase + find_sbops(kbase, kdata, ksize);
+    uint32_t sbopsoffset = kbase + find_sandbox_mac_policy_ops(kbase, kdata, ksize);
 
     print_log("nuking sandbox\n");
     kwrite32_exec(sbopsoffset + offsetof(struct mac_policy_ops, mpo_vnode_check_rename), 0);

@@ -2213,17 +2213,21 @@ uint32_t find_lwvm_jump(uint32_t region, uint8_t* kdata, size_t ksize)
     return ((uintptr_t)insn) + 0 - ((uintptr_t)kdata) + 1;
 }
 
-uint32_t find_sbops(uint32_t region, uint8_t* kdata, size_t ksize) {
-    char* seatbelt_sandbox_policy = memmem(kdata, ksize, "Seatbelt sandbox policy", strlen("Seatbelt sandbox policy"));
-    if (!seatbelt_sandbox_policy)
+// from powdersn0w
+uint32_t find_sandbox_mac_policy_ops(uint32_t region, uint8_t* kdata, size_t ksize) {
+    uint8_t* sbStr = memmem(kdata, ksize, "Seatbelt sandbox policy", sizeof("Seatbelt sandbox policy"));
+    if(!sbStr)
         return 0;
+    uint32_t fullname = (uint32_t)sbStr - (uintptr_t)kdata;
 
-    uint32_t seatbelt = (uintptr_t)seatbelt_sandbox_policy - (uintptr_t)kdata + region;
-    char* seatbelt_sandbox_policy_ptr = memmem(kdata, ksize, (char*)&seatbelt, sizeof(seatbelt));
-    if (!seatbelt_sandbox_policy_ptr)
+    uint32_t search[1];
+    search[0] = fullname+region;
+
+    uint8_t* findPtr = memmem(kdata, ksize, &search, 4);
+    if(!findPtr)
         return 0;
-
-    uint32_t ptr_to_seatbelt = (uintptr_t)seatbelt_sandbox_policy_ptr - (uintptr_t)kdata;
-    uint32_t sbops = ptr_to_seatbelt + 0x24;
-    return sbops;
+    uint32_t mpc_top = (uint32_t)findPtr - (uintptr_t)kdata - 4;
+    uint32_t ops_off = mpc_top += 0x10;
+    uint32_t ops = *(uint32_t*)(kdata + ops_off) - region;
+    return ops;
 }
