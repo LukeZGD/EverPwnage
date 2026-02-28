@@ -138,16 +138,7 @@ bool uicache_only = false;
     dispatch_async(dispatch_get_main_queue(), ^{
         [_jailbreak_button setTitle:@"Running exploit" forState:UIControlStateDisabled];
     });
-    // hack, to just keep trying until it succeeds somehow
-    int ool_count = 1000;
-    int ret = -1;
-    while (ool_count >= 100 && ret != 0) {
-        print_log("[*] ool_count = %d\n", ool_count);
-        ret = run_exploit(ool_count);
-        if (ret == 0) break;
-        ool_count -= 100;
-        usleep(20000);
-    }
+    run_oob_entry(true);
 
     if (kinfo->tfp0 == 0) {
         dispatch_async(dispatch_get_main_queue(), ^{

@@ -13,17 +13,23 @@
 extern kern_return_t mach_vm_map(vm_map_t, mach_vm_address_t *, mach_vm_size_t, mach_vm_offset_t, int, mem_entry_name_port_t, memory_object_offset_t, boolean_t, vm_prot_t, vm_prot_t, vm_inherit_t);
 extern kern_return_t mach_vm_deallocate(vm_map_t, mach_vm_address_t, mach_vm_size_t);
 extern kern_return_t mach_vm_allocate(vm_map_t, mach_vm_address_t *, mach_vm_size_t, int);
-extern kern_return_t mach_vm_copy(vm_map_t, mach_vm_address_t, mach_vm_size_t, mach_vm_address_t);
 extern kern_return_t mach_vm_read_overwrite(vm_map_t, mach_vm_address_t, mach_vm_size_t, mach_vm_address_t, mach_vm_size_t *);
 extern kern_return_t mach_vm_write(vm_map_t, mach_vm_address_t, vm_offset_t, mach_msg_type_number_t);
+extern kern_return_t mach_vm_msync(vm_map_t, mach_vm_address_t, mach_vm_size_t, vm_sync_t);
+extern kern_return_t task_get_special_port(task_t, int, mach_port_t *);
 
 uint8_t *map_data(uint32_t pa, uint32_t size, vm_prot_t prot);
 uint8_t *map_relative_data(uint32_t offset, uint32_t size, vm_prot_t prot);
 void unmap_data(uint8_t *addr, uint32_t size);
+void sync_mapping(uint8_t *addr, uint32_t size);
 void physread_buf(uint32_t addr, void *data, uint32_t size);
 void physwrite_buf(uint32_t addr, void *data, uint32_t size);
 uint32_t physread32(uint32_t addr);
+uint16_t physread16(uint32_t addr);
+uint8_t physread8(uint32_t addr);
 void physwrite32(uint32_t addr, uint32_t data);
+void physwrite16(uint32_t addr, uint16_t data);
+void physwrite8(uint32_t addr, uint8_t data);
 void kread_buf(uint32_t addr, void *data, uint32_t size);
 void kwrite_buf(uint32_t addr, void *data, uint32_t size);
 void kwrite_buf_exec(uint32_t addr, void *data, uint32_t size);

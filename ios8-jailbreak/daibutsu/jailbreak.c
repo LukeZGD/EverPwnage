@@ -491,16 +491,7 @@ void failed(void){
 int main(void){
     jailbreak_init();
 
-    // hack, to just keep trying until it succeeds somehow
-    int ool_count = 1000;
-    int ret = -1;
-    while (ool_count >= 100 && ret != 0) {
-        print_log("[*] ool_count = %d\n", ool_count);
-        ret = run_exploit(ool_count);
-        if (ret == 0) break;
-        ool_count -= 100;
-        usleep(20000);
-    }
+    run_oob_entry(true);
 
     if(kinfo->tfp0){
         print_log("[*] got tfp0: %x\n", kinfo->tfp0);

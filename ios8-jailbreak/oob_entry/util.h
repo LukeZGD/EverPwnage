@@ -13,17 +13,11 @@
 #include <sys/sysctl.h>
 
 #define IKOT_TASK           0x00000002
-#define	IKOT_HOST           0x00000003
-#define	IKOT_HOST_PRIV      0x00000004
+#define IKOT_HOST_PRIV      0x00000004
 #define IO_BITS_ACTIVE      0x80000000
+#define TASK_SEATBELT_PORT	7
 
 #define koffsetof(struct, entry) kinfo->offsets.struct.entry
-
-typedef struct {
-    mach_msg_header_t hdr;
-    mach_msg_body_t body;
-    mach_msg_ool_ports_descriptor_t ool_ports;
-} ool_msg_t;
 
 extern CFDictionaryRef _CFCopySystemVersionDictionary(void);
 extern void *(*IOSurfaceCreate)(CFDictionaryRef);
@@ -37,8 +31,6 @@ extern int (*IOMobileFramebufferGetLayerDefaultSurface)(mach_port_t, int, void *
 int init_io(void);
 void get_ios_version(uint32_t *output);
 CFNumberRef CFNUM(uint32_t value);
-mach_port_t create_mach_port(void);
-bool valid_ipc_port(uint32_t addr);
 uint64_t timer_start(void);
 uint64_t timer_end(uint64_t start);
 int init_offsets(void);
