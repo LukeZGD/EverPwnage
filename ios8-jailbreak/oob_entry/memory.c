@@ -3,17 +3,23 @@
 #include "memory.h"
 
 uint8_t *map_data(uint32_t pa, uint32_t size, vm_prot_t prot) {
+    bool write_prot = ((prot & VM_PROT_WRITE) == VM_PROT_WRITE);
     uint32_t map_offset = (pa & ~0xfff) - kinfo->mapping_base;
     mach_vm_address_t mapped = 0;
-    if (mach_vm_map(mach_task_self(), &mapped, size, 0, VM_FLAGS_NO_CACHE|VM_FLAGS_ANYWHERE, kinfo->oob_entry, map_offset, 0, prot, prot, 0) != 0) return NULL;
-    mem_sync();
+    uint32_t flags = VM_FLAGS_ANYWHERE | (write_prot ? VM_FLAGS_NO_CACHE : 0);
+    
+    if (mach_vm_map(mach_task_self(), &mapped, size, 0, flags, kinfo->oob_entry, map_offset, 0, prot, prot, 0) != 0) return NULL;
+    if (write_prot) mem_sync();
     return (uint8_t *)mapped;
 }
 
 uint8_t *map_relative_data(uint32_t offset, uint32_t size, vm_prot_t prot) {
+    bool write_prot = ((prot & VM_PROT_WRITE) == VM_PROT_WRITE);
     mach_vm_address_t mapped = 0;
-    if (mach_vm_map(mach_task_self(), &mapped, size, 0, VM_FLAGS_NO_CACHE|VM_FLAGS_ANYWHERE, kinfo->oob_entry, offset, 0, prot, prot, 0) != 0) return NULL;
-    mem_sync();
+    uint32_t flags = VM_FLAGS_ANYWHERE | (write_prot ? VM_FLAGS_NO_CACHE : 0);
+
+    if (mach_vm_map(mach_task_self(), &mapped, size, 0, flags, kinfo->oob_entry, offset, 0, prot, prot, 0) != 0) return NULL;
+    if (write_prot) mem_sync();
     return (uint8_t *)mapped;
 }
 
@@ -23,6 +29,11 @@ void sync_mapping(uint8_t *addr, uint32_t size) {
     mem_sync();
 }
 
+bool valid_pa(uint32_t pa) {
+    if (pa < kinfo->mapping_base || pa > (kinfo->mem_base + kinfo->mem_size)) return false;
+    return (((pa >> 16) & 0xffff) != 0xdead);
+}
+
 void unmap_data(uint8_t *addr, uint32_t size) {
     if (addr == NULL) return;
     sync_mapping(addr, size);
@@ -30,6 +41,7 @@ void unmap_data(uint8_t *addr, uint32_t size) {
 }
 
 void physread_buf(uint32_t addr, void *data, uint32_t size) {
+    if (!valid_pa(addr)) return;
     uint32_t read_offset = addr & 0xfff;
     uint32_t map_size = (size + 0xfff) & ~0xfff;
 
@@ -38,10 +50,11 @@ void physread_buf(uint32_t addr, void *data, uint32_t size) {
     uint8_t *src = (uint8_t *)(mapped + read_offset);
 
     while (size--) *dest++ = *src++;
-    unmap_data(mapped, map_size);
+    mach_vm_deallocate(mach_task_self(), (mach_vm_address_t)mapped, map_size);
 }
 
 void physwrite_buf(uint32_t addr, void *data, uint32_t size) {
+    if (!valid_pa(addr)) return;
     uint32_t write_offset = addr & 0xfff;
     uint32_t map_size = (size + 0xfff) & ~0xfff;
 
@@ -50,7 +63,9 @@ void physwrite_buf(uint32_t addr, void *data, uint32_t size) {
     uint8_t *src = (uint8_t *)data;
     
     while (size--) *dest++ = *src++;
-    unmap_data(mapped, map_size);
+    sync_mapping(mapped, map_size);
+    mach_vm_deallocate(mach_task_self(), (mach_vm_address_t)mapped, map_size);
+
 }
 
 uint32_t physread32(uint32_t addr) {
@@ -89,10 +104,14 @@ uint32_t kvtophys(uint32_t va) {
     uint32_t l1_desc = physread32(l1_desc_addr);
 
     if ((l1_desc & 0x3) == 0x2) {
-        if ((l1_desc & 0x40000) != 0) {
-            return ((va & 0xFFF000) | (l1_desc & 0xFF000000)) | (va & 0xFFF);
+        if (kinfo->version[0] >= 9) {
+            return (l1_desc & 0xFFF00000) + (va & 0x000FFFFF);
         } else {
-            return ((va & 0xFF000) | (l1_desc & 0xFFF00000)) | (va & 0xFFF);
+            if ((l1_desc & 0x40000) != 0) {
+                return ((va & 0xFFF000) | (l1_desc & 0xFF000000)) | (va & 0xFFF);
+            } else {
+                return ((va & 0xFF000) | (l1_desc & 0xFFF00000)) | (va & 0xFFF);
+            }
         }
     } else if ((l1_desc & 0x3) == 0x1) {
         if (kinfo->version[0] <= 5) {
