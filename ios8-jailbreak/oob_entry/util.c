@@ -97,6 +97,7 @@ int init_offsets(void) {
             kinfo->offsets.proc.lock_type = 0x48;
             kinfo->offsets.proc.p_stat = 0x4c;
             kinfo->offsets.ipc_port.ip_references = 0x4;
+            kinfo->offsets.ipc_port.ip_kobject = 0x48;
             break;
         case 9:
             kinfo->offsets.task.ref_count = 0xc;
@@ -108,6 +109,7 @@ int init_offsets(void) {
             kinfo->offsets.proc.lock_type = 0x4c;
             kinfo->offsets.proc.p_stat = 0x50;
             kinfo->offsets.ipc_port.ip_references = 0x4;
+            kinfo->offsets.ipc_port.ip_kobject = 0x50;
             break;
         case 8:
             kinfo->offsets.task.ref_count = 0xc;
@@ -119,6 +121,7 @@ int init_offsets(void) {
             kinfo->offsets.proc.lock_type = 0x4c;
             kinfo->offsets.proc.p_stat = 0x50;
             kinfo->offsets.ipc_port.ip_references = 0x4;
+            kinfo->offsets.ipc_port.ip_kobject = 0x44;
             break;
         case 7:
             kinfo->offsets.task.ref_count = 0xc;
@@ -130,6 +133,7 @@ int init_offsets(void) {
             kinfo->offsets.proc.lock_type = 0x4c;
             kinfo->offsets.proc.p_stat = 0x50;
             kinfo->offsets.ipc_port.ip_references = 0x4;
+            kinfo->offsets.ipc_port.ip_kobject = 0x44;
             break;
         case 6:
             kinfo->offsets.task.ref_count = 0xc;
@@ -141,6 +145,7 @@ int init_offsets(void) {
             kinfo->offsets.proc.lock_type = 0x44;
             kinfo->offsets.proc.p_stat = 0x48;
             kinfo->offsets.ipc_port.ip_references = 0x4;
+            kinfo->offsets.ipc_port.ip_kobject = 0x44;
             break;
         case 5:
             kinfo->offsets.task.ref_count = 0xc;
@@ -152,6 +157,7 @@ int init_offsets(void) {
             kinfo->offsets.proc.lock_type = 0x44;
             kinfo->offsets.proc.p_stat = 0x48;
             kinfo->offsets.ipc_port.ip_references = 0x4;
+            kinfo->offsets.ipc_port.ip_kobject = 0x40;
             break;
         case 4:
             kinfo->offsets.task.ref_count = 0xc;
@@ -163,6 +169,7 @@ int init_offsets(void) {
             kinfo->offsets.proc.lock_type = 0x44;
             kinfo->offsets.proc.p_stat = 0x48;
             kinfo->offsets.ipc_port.ip_references = 0x4;
+            kinfo->offsets.ipc_port.ip_kobject = 0x40;
             break;
         case 3:
             kinfo->offsets.task.ref_count = 0xc;
@@ -174,6 +181,7 @@ int init_offsets(void) {
             kinfo->offsets.proc.lock_type = 0x44;
             kinfo->offsets.proc.p_stat = 0x48;
             kinfo->offsets.ipc_port.ip_references = 0x0;
+            kinfo->offsets.ipc_port.ip_kobject = 0x40;
             break;
         default:
             break;

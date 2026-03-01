@@ -47,6 +47,7 @@ typedef struct {
         } proc;
         struct {
             int ip_references;
+            int ip_kobject;
         } ipc_port;
     } offsets;
 } kinfo_t;
