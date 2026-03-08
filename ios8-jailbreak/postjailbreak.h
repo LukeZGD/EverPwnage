@@ -16,6 +16,7 @@ void postjailbreak_untether(void);
 void postjailbreak_openssh(void);
 void postjailbreak_tweaks(void);
 void postjailbreak_respring(void);
+int set_permissions(void);
 
 extern char *ckernv;
 extern bool install_openssh;
