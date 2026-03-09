@@ -2231,3 +2231,377 @@ uint32_t find_sandbox_mac_policy_ops(uint32_t region, uint8_t* kdata, size_t ksi
     uint32_t ops = *(uint32_t*)(kdata + ops_off) - region;
     return ops;
 }
+
+// from aquila (ios 7 support)
+uint32_t find_proc_enforce_ios_7(uint32_t region, uint8_t *kdata, size_t ksize) {
+    uint8_t *proc_enforce_description = memmem(kdata, ksize, "Enforce MAC policy on process operations", sizeof("Enforce MAC policy on process operations"));
+    if (!proc_enforce_description) return 0;
+
+    uint32_t proc_enforce_description_address = region + ((uintptr_t)proc_enforce_description - (uintptr_t)kdata);
+    uint8_t *proc_enforce_description_ptr = memmem(kdata, ksize, &proc_enforce_description_address, sizeof(proc_enforce_description_address));
+    if (!proc_enforce_description_ptr) return 0;
+
+    uint32_t *proc_enforce_ptr = (uint32_t *)(proc_enforce_description_ptr - (5 * sizeof(uint32_t)));
+    return *proc_enforce_ptr - region;
+}
+
+uint32_t find_cs_enforcement_disable_amfi_ios_7(uint32_t region, uint8_t *kdata, size_t ksize) {
+    const uint8_t search_function[] = {0x20, 0x68, 0x40, 0xF4, 0x40, 0x70, 0x20, 0x60, 0x00, 0x20, 0x90, 0xBD};
+    uint8_t *ptr = memmem(kdata, ksize, search_function, sizeof(search_function));
+    if (!ptr) return 0;
+
+    uint16_t *ldrb = find_last_insn_matching(region, kdata, ksize, (uint16_t *)ptr, insn_is_ldrb_imm);
+    if (!ldrb) return 0;
+
+    if (insn_ldrb_imm_imm(ldrb) != 0 || insn_ldrb_imm_rt(ldrb) > 12) return 0;
+    return find_pc_rel_value(region, kdata, ksize, ldrb, insn_ldrb_imm_rn(ldrb));
+}
+
+uint32_t find_p_bootargs_ios_7(uint32_t region, uint8_t *kdata, size_t ksize) {
+    uint8_t *pixel_format = memmem(kdata, ksize, "BBBBBBBBGGGGGGGGRRRRRRRR", sizeof("BBBBBBBBGGGGGGGGRRRRRRRR"));
+    if (!pixel_format) return 0;
+
+    uint16_t *ref = find_literal_ref(region, kdata, ksize, (uint16_t *)kdata, (uintptr_t)pixel_format - (uintptr_t)kdata);
+    if (!ref) return 0;
+
+    uint16_t *fn_start = find_last_insn_matching(region, kdata, ksize, ref, insn_is_preamble_push);
+    if (!fn_start) return 0;
+    int found = 0;
+
+    uint16_t *current_instruction = fn_start;
+    while ((uintptr_t)current_instruction < (uintptr_t)ref) {
+        if (insn_is_mov_imm(current_instruction) && insn_mov_imm_imm(current_instruction) == 1) {
+            found = 1;
+            break;
+        }
+        current_instruction += insn_is_32bit(current_instruction) ? 2 : 1;
+    }
+
+    if (!found) return 0;
+    found = 0;
+    current_instruction += 2;
+    uint32_t str_val = insn_str_imm_imm(current_instruction);
+    current_instruction += 2;
+
+    uint32_t pe_state = find_pc_rel_value(region, kdata, ksize, current_instruction, insn_str_imm_rn(current_instruction)) + str_val;
+    if (!pe_state) return 0;
+    return pe_state + 0x70;
+}
+
+uint32_t find_mount_ios_7(uint32_t region, uint8_t *kdata, size_t ksize) {
+    const struct find_search_mask search_masks7[] = {
+        {0xFFF0, 0xF420},
+        {0xF0FF, 0x3080},
+        {0xFFF0, 0xF010},
+        {0xFFFF, 0x0F20},
+        {0xFFFF, 0xF04F},
+        {0xF0FF, 0x0001},
+        {0xFFFF, 0xBF08},
+        {0xFFF0, 0xF440},
+        {0xF0FF, 0x3080},
+        {0xFFF0, 0xF010},
+        {0xFFFF, 0x0F01},
+        {0xFFC0, 0xF000},
+        {0xF000, 0x8000},
+        {0xF800, 0xE000},
+        {0xFF80, 0x4600},
+        {0xF800, 0xE000}
+    };
+
+    uint16_t *insn = find_with_search_mask(region, kdata, ksize, sizeof(search_masks7) / sizeof(*search_masks7), search_masks7);
+    if (insn == NULL) return 0;
+    return (((uintptr_t)insn) + 22) - ((uintptr_t)kdata);
+}
+
+uint32_t find_pmap_location_ios_7(uint32_t region, uint8_t *kdata, size_t ksize) {
+    uint8_t *pmap_map_bd = memmem(kdata, ksize, "\"pmap_map_bd\"", sizeof("\"pmap_map_bd\""));
+    if (!pmap_map_bd) return 0;
+
+    uint16_t *ptr = find_literal_ref(region, kdata, ksize, (uint16_t *)kdata, (uintptr_t)pmap_map_bd - (uintptr_t)kdata);
+    if (!ptr) return 0;
+
+    const uint8_t search_function_end[] = {0xF0, 0xBD};
+    ptr = memmem(ptr, ksize - ((uintptr_t)ptr - (uintptr_t)kdata), search_function_end, sizeof(search_function_end));
+    if (!ptr) return 0;
+
+    uint16_t *bl = find_last_insn_matching(region, kdata, ksize, ptr, insn_is_bl);
+    if (!bl) return 0;
+
+    uint16_t *ldr_r2 = NULL;
+    uint16_t *current_instruction = bl;
+    while ((uintptr_t)current_instruction > (uintptr_t)kdata) {
+        if (insn_is_32bit(current_instruction - 2) && !insn_is_32bit(current_instruction - 3)) {
+            current_instruction -= 2;
+        } else {
+            --current_instruction;
+        }
+
+        if (insn_ldr_imm_rt(current_instruction) == 2 && insn_ldr_imm_imm(current_instruction) == 0) {
+            ldr_r2 = current_instruction;
+            break;
+        } else if (insn_is_b_conditional(current_instruction) || insn_is_b_unconditional(current_instruction)) {
+            break;
+        }
+    }
+
+    if (ldr_r2) return find_pc_rel_value(region, kdata, ksize, ldr_r2, insn_ldr_imm_rn(ldr_r2));
+    uint32_t imm32 = insn_bl_imm32(bl);
+    uint32_t target = ((uintptr_t)bl - (uintptr_t)kdata) + 4 + imm32;
+
+    if (target > ksize) return 0;
+    int found = 0;
+    int rd;
+
+    current_instruction = (uint16_t *)(kdata + target);
+    while ((uintptr_t)current_instruction < (uintptr_t)(kdata + ksize)) {
+        if (insn_is_add_reg(current_instruction) && insn_add_reg_rm(current_instruction) == 15) {
+            found = 1;
+            rd = insn_add_reg_rd(current_instruction);
+            current_instruction += insn_is_32bit(current_instruction) ? 2 : 1;
+            break;
+        }
+        current_instruction += insn_is_32bit(current_instruction) ? 2 : 1;
+    }
+
+    if (!found) return 0;
+    return find_pc_rel_value(region, kdata, ksize, current_instruction, rd);
+}
+
+
+uint32_t find_csops_ios_7(uint32_t region, uint8_t *kdata, size_t ksize) {
+    const struct find_search_mask search_masks[] = {
+        {0xFC00, 0xF400},
+        {0x0000, 0x0000},
+        {0xF800, 0xE000},
+        {0xFFF0, 0xF100},
+        {0x0000, 0x0000},
+        {0xFF80, 0x4600},
+        {0xF800, 0xF000},
+        {0x0000, 0x0000},
+        {0xFFF0, 0xF890},
+        {0x0000, 0x0000},
+        {0xFFF0, 0xF010},
+        {0xFFFF, 0x0F01},
+        {0xFC00, 0xF000},
+        {0x0000, 0x0000}};
+
+        uint16_t *insn = find_with_search_mask(region, kdata, ksize, sizeof(search_masks) / sizeof(*search_masks), search_masks);
+        if (insn == NULL) return 0;
+        return (((uintptr_t)insn) + 24) - ((uintptr_t)kdata);
+}
+
+uint32_t find_sandbox_call_i_can_has_debugger_ios_7(uint32_t region, uint8_t *kdata, size_t ksize) {
+    const struct find_search_mask search_masks_1[] = {
+        {0xFFFF, 0xB590}, // PUSH {R4,R7,LR}
+        {0xFFFF, 0x2000}, // MOVS R0, #0
+        {0xFFFF, 0xAF01}, // ADD  R7, SP, #4
+        {0xFFFF, 0x2400}, // MOVS R4, #0
+        {0xF800, 0xF000}, // BL i_can_has_debugger
+        {0xD000, 0xD000},
+        {0xFD07, 0xB100}  // CBZ  R0, loc_xxx
+    };
+
+    const struct find_search_mask search_masks_2[] = {
+        {0xFFFF, 0xB590}, // PUSH {R4,R7,LR}
+        {0xFFFF, 0xAF01}, // ADD  R7, SP, #4
+        {0xFFFF, 0x2000}, // MOVS R0, #0
+        {0xFFFF, 0x2400}, // MOVS R4, #0
+        {0xF800, 0xF000}, // BL i_can_has_debugger
+        {0xD000, 0xD000},
+        {0xFD07, 0xB100}  // CBZ  R0, loc_xxx
+    };
+
+    uint16_t *ptr = find_with_search_mask(region, kdata, ksize, sizeof(search_masks_1) / sizeof(*search_masks_1), search_masks_1);
+    if (!ptr) ptr = find_with_search_mask(region, kdata, ksize, sizeof(search_masks_2) / sizeof(*search_masks_2), search_masks_2);
+    if (!ptr) return 0;
+    return (uintptr_t)ptr + 8 - ((uintptr_t)kdata);
+}
+
+uint16_t *find_PE_reboot_on_panic_ios_7(uint32_t region, uint8_t *kdata, size_t ksize) {
+    const struct find_search_mask search_masks[] = {
+        {0xFBF0, 0xF240},
+        {0x8F00, 0x0000},
+        {0xFBF0, 0xF2C0},
+        {0xFF00, 0x0000},
+        {0xFFFF, 0x4478},
+        {0xFFFF, 0xF8D0},
+        {0xF000, 0x0000},
+        {0xFD07, 0xB100},
+        {0xFBF0, 0xF240},
+        {0x8F00, 0x0000},
+        {0xFBF0, 0xF2C0},
+        {0xFF00, 0x0000},
+        {0xFFFF, 0x4478},
+        {0xFFFF, 0xF890}, // ldrb.w r1 [r?] (T32)
+        {0xF000, 0x1000}, // ...
+        {0xFFFF, 0x2000}, // movs r0, #0 (T16)
+        {0xFFFF, 0xf011}, // tst.w r1, #4 (T32)
+        {0xFFFF, 0x0f04}, // ...
+        {0xFFff, 0xbf08}  // it eq (T16)
+    };
+
+    uint16_t *insn = find_with_search_mask(region, kdata, ksize, sizeof(search_masks) / sizeof(*search_masks), search_masks);
+    if (!insn) return 0;
+    return insn;
+}
+
+uint32_t find_i_can_has_debugger_1_ios_7(uint32_t region, uint8_t *kdata, size_t ksize) {
+    uint16_t *insn = find_PE_reboot_on_panic_ios_7(region, kdata, ksize);
+    if (!insn) return 0;
+    insn += 5;
+
+    uint32_t value = find_pc_rel_value(region, kdata, ksize, insn, insn_ldrb_imm_rt(insn));
+    if (!value) return 0;
+
+    if ((*insn & 0xFFF0) != 0xF8D0) return 0;
+    return (insn[1] & 0xFFF) + value;
+}
+
+uint32_t find_i_can_has_debugger_2_ios_7(uint32_t region, uint8_t *kdata, size_t ksize) {
+    uint16_t *insn = find_PE_reboot_on_panic_ios_7(region, kdata, ksize);
+    if (!insn) return 0;
+
+    uint16_t *insn2 = insn + 13;
+    uint32_t value = find_pc_rel_value(region, kdata, ksize, insn2, insn_ldrb_imm_rt(insn2));
+    if (!value) return 0;
+
+    if ((*insn2 & 0xFFF0) != 0xF890) return 0;
+    return (insn[14] & 0xFFF) + value;
+}
+
+uint32_t find_vm_fault_enter_patch_ios_7(uint32_t region, uint8_t *kdata, size_t ksize) {
+    // ios 7.1-7.1.2
+    const uint8_t search_71[] = {
+        0x10, 0xf4, 0x00, 0x2f, 	// tst.w r0, #0x80000 (T32)
+        0x0f, 0xd1, 				// bne 0x26 (T16)
+        0xba, 0x69, 				// ldr r2, [r7, #0x18] (T16)
+        0x00, 0x2a  				// cmp r2, #0x0 (T16)
+    };
+
+    void *ptr = memmem(kdata, ksize, search_71, sizeof(search_71));
+    if (ptr != NULL) {
+        return (((uintptr_t)ptr) + 0x4) - ((uintptr_t)kdata);
+    }
+
+    // ios 7.0-7.0.6
+    const uint8_t search_70[] = {
+        0x10, 0xf4, 0x00, 0x2f, 	// tst.w r0, #0x80000 (T32)
+        0x15, 0xD1,                 // bne #0x2e (T16)
+        0xba, 0x69, 				// ldr r2, [r7, #0x18] (T16)
+        0x00, 0x23,                 // movs r3, #0 (T16)
+        0x00, 0x2A                  // cmp r2, #0 (T16)
+    };
+
+    ptr = memmem(kdata, ksize, search_70, sizeof(search_70));
+    if (ptr != NULL) {
+        return (((uintptr_t)ptr) + 0x4) - ((uintptr_t)kdata);
+    }
+    return 0;
+}
+
+uint32_t find_vm_map_enter_patch_ios_7(uint32_t region, uint8_t *kdata, size_t ksize) {
+    const struct find_search_mask search_masks[] = {
+        {0xFFF0, 0xF000},
+        {0xF0FF, 0x0006},
+        {0xF8FF, 0x2806},
+        {0x0000, 0x0000},
+        {0xFFFF, 0xBF18}
+    };
+
+    const struct find_search_mask search_masks2[] = {
+        {0xFFF0, 0xF000},
+        {0xF0FF, 0x0006},
+        {0x0000, 0x0000},
+        {0x0000, 0x0000},
+        {0xF8FF, 0x2806},
+        {0x0000, 0x0000},
+        {0xFFFF, 0xBF18}
+    };
+
+    uint16_t *insn = find_with_search_mask(region, kdata, ksize, sizeof(search_masks) / sizeof(*search_masks), search_masks);
+    if (insn != NULL) return (((uintptr_t)insn) + 0x4) - ((uintptr_t)kdata);
+
+    insn = find_with_search_mask(region, kdata, ksize, sizeof(search_masks2) / sizeof(*search_masks2), search_masks2);
+    if (insn == NULL) return 0;
+    return (((uintptr_t)insn) + 0x8) - ((uintptr_t)kdata);
+}
+
+uint32_t find_vm_map_protect_patch_ios_7(uint32_t region, uint8_t *kdata, size_t ksize) {
+    const uint8_t search[] = {0x04, 0xD1, 0x10, 0xF0, 0x00, 0x5F, 0x08, 0xBF};
+    void *ptr = memmem(kdata, ksize, search, sizeof(search));
+    if (!ptr) return 0;
+    return (((uintptr_t)ptr) + 0x8) - ((uintptr_t)kdata);
+}
+
+uint32_t find_tfp0_patch_ios_7(uint32_t region, uint8_t *kdata, size_t ksize) {
+    const uint8_t search[] = {0x02, 0x91, 0x01, 0x91, 0xBB, 0xF1, 0x00, 0x0F, 0x00, 0xF0};
+    void *ptr = memmem(kdata, ksize, search, sizeof(search));
+    if (!ptr) return 0;
+    return (((uintptr_t)ptr) + 0x8) - ((uintptr_t)kdata);
+}
+
+uint32_t find_sb_patch_ios_7(uint32_t region, uint8_t *kdata, size_t ksize) {
+    uint8_t *control_name = memmem(kdata, ksize, "control_name", sizeof("control_name"));
+    if (!control_name) return 0;
+
+    uint16_t * ref = find_literal_ref(region, kdata, ksize, (uint16_t * ) kdata, (uintptr_t) control_name - (uintptr_t) kdata);
+    if (!ref) return 0;
+
+    uint16_t *fn_start = ref;
+    while (1) {
+        fn_start = find_last_insn_matching(region, kdata, ksize, fn_start, insn_is_push);
+        if (!fn_start) return 0;
+
+        uint16_t registers = insn_push_registers(fn_start);
+        if ((registers & (1 << 14)) != 0 || (registers & (1 << 0 | 1 << 1)) == (1 << 0 | 1 << 1)) break;
+    }
+
+    return ((uintptr_t) fn_start) - ((uintptr_t) kdata);
+}
+
+uint32_t find_vn_getpath_ios_7(uint32_t region, uint8_t *kdata, size_t ksize) {
+    const uint8_t search[] = {
+        0x01, 0x20, 0xCD, 0xE9, 0x00, 0x01,
+        0x28, 0x46, 0x41, 0x46, 0x32, 0x46,
+        0x23, 0x46
+    };
+
+    const uint8_t search_alt[] = {
+        0x01, 0x20, 0x32, 0x46, 0x23, 0x46,
+        0xCD, 0xE9, 0x00, 0x01, 0x28, 0x46,
+        0x41, 0x46
+    };
+
+    uint16_t *fn = memmem(kdata, ksize, search, sizeof(search));
+    if (!fn) {
+        fn = memmem(kdata, ksize, search_alt, sizeof(search_alt));
+        if (!fn) return 0;
+    }
+
+    uint16_t *fn_start = find_last_insn_matching(region, kdata, ksize, fn, insn_is_preamble_push);
+    if (!fn_start) return 0;
+    return ((uintptr_t) fn_start | 1) - ((uintptr_t) kdata);
+}
+
+uint32_t find_memcmp_ios_7(uint32_t region, uint8_t *kdata, size_t ksize) {
+    const uint8_t search[] = {
+        0x00, 0x23, 0x62, 0xB1, 0x91, 0xF8,
+        0x00, 0x90, 0x03, 0x78, 0x4B, 0x45,
+        0x09, 0xD1, 0x01, 0x3A, 0x00, 0xF1,
+        0x01, 0x00, 0x01, 0xF1, 0x01, 0x01,
+        0x4F, 0xF0, 0x00, 0x03, 0xF2, 0xD1,
+        0x18, 0x46, 0x70, 0x47, 0xA3, 0xEB,
+        0x09, 0x03, 0x18, 0x46, 0x70, 0x47
+    };
+
+    void *ptr = memmem(kdata, ksize, search, sizeof(search)) + 1;
+    if (!ptr) return 0;
+    return ((uintptr_t) ptr | 1) - ((uintptr_t) kdata);
+}
+
+uint32_t find_container_required_patch_ios_7(uint32_t region, uint8_t *kdata, size_t ksize) {
+    char *container_required = "com.apple.private.security.container-required";
+    uint8_t *str = memmem(kdata, ksize, container_required, strlen(container_required));
+    if (str == NULL) return 0;
+    return (uintptr_t)str - (uintptr_t)kdata;
+}

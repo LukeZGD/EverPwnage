@@ -63,6 +63,7 @@ bool uicache_only = false;
     if (access("/daibutsu", F_OK) == 0 ||
         access("/everuntether", F_OK) == 0 ||
         access("/untether/untether", F_OK) == 0 ||
+        access("/aquila", F_OK) == 0 ||
         access("/tmp/.jailbroken", F_OK) == 0) {
 
         _tweaks_toggle.enabled = NO;
@@ -100,8 +101,8 @@ bool uicache_only = false;
         ios9 = true;
     }
 
-    // iOS 8.0-9.3.6
-    if (!(ios9 || strstr(ckernv, "2784") || strstr(ckernv, "2783"))) {
+    // iOS 7.0-9.3.6
+    if (!(ios9 || strstr(ckernv, "2784") || strstr(ckernv, "2783") || strstr(ckernv, "2423"))) {
         _jailbreak_button.enabled = NO;
         [_jailbreak_button setTitle:@"Not Supported" forState:UIControlStateDisabled];
     }
@@ -204,7 +205,9 @@ bool uicache_only = false;
     });
     print_log("[*] patching kernel...\n");
     jailbreak_init();
-    if (ios9)
+    if (strstr(ckernv, "2423"))
+        unjail7();
+    else if (ios9)
         unjail9();
     else
         unjail8();

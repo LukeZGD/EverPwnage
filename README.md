@@ -1,6 +1,6 @@
 # EverPwnage
 
-**iOS 8.0-9.3.6 Jailbreak for 32-bit Devices**
+**iOS 7.0-9.3.6 Jailbreak for 32-bit Devices**
 
 ## Usage
 
@@ -22,6 +22,8 @@ EverPwnage has an **"Install Untether" toggle**, which controls the installation
 - **iOS 9.3.5 and 9.3.6 are not untethered**. Semi-untethered only.
 
 EverUntether is a [forked version](https://github.com/LukeZGD/daibutsu) of daibutsu untether (based on v1.2.3), updated to replace Trident/sock_port_2_legacy with [oob_entry](https://github.com/staturnzz/oob_entry), and some fixes for iOS 9 support. Compatible with all 32-bit devices on iOS 8.0-9.3.4.
+
+For iOS 7, Aquila v2.1 Untether is used instead.
 
 ## Switching from Other Jailbreaks
 
@@ -45,5 +47,6 @@ Versions 1.3 and newer are built using Xcode 13.4.1 and macOS Monterey 12.6.
 - untether and patches: [daibutsu](https://github.com/kok3shidoll/daibutsu)
 - untether: [jsc_untether](https://github.com/staturnzz/jsc_untether)
 - some ios 9 patches: [libkok3shi](https://github.com/kok3shidoll/libkok3shi)
+- ios 7 untether and patches: [aquila](https://github.com/staturnzz/aquila)
 - got IOKit stuff and other learnings from: [wtfis](https://github.com/TheRealClarity/wtfis)
 - base of this jailbreak: [openpwnage](https://github.com/0xilis/openpwnage)

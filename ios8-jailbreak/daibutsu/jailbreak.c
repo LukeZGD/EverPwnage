@@ -127,6 +127,116 @@ uint32_t find_PE_i_can_has_debugger_2(void) {
     return PE_i_can_has_debugger_2;
 }
 
+void unjail7(void) {
+    print_log("[*] running kdumper\n");
+    uint32_t kbase = kinfo->kernel_base;
+    size_t ksize = 0xFFE000;
+    void *kdata = calloc(1, ksize);
+    kread_buf(kbase, kdata, ksize);
+
+    print_log("[*] running patchfinder\n");
+    uint32_t proc_enforce = kbase + find_proc_enforce_ios_7(kbase, kdata, ksize);
+    uint32_t cs_enforcement_disable_amfi = kbase + find_cs_enforcement_disable_amfi_ios_7(kbase, kdata, ksize);
+    uint32_t PE_i_can_has_debugger_1 = kbase + find_i_can_has_debugger_1_ios_7(kbase, kdata, ksize);
+    uint32_t PE_i_can_has_debugger_2 = kbase + find_i_can_has_debugger_2_ios_7(kbase, kdata, ksize);
+    uint32_t p_bootargs = kbase + find_p_bootargs_ios_7(kbase, kdata, ksize);
+    uint32_t vm_fault_enter = kbase + find_vm_fault_enter_patch_ios_7(kbase, kdata, ksize);
+    uint32_t vm_map_enter = kbase + find_vm_map_enter_patch_ios_7(kbase, kdata, ksize);
+    uint32_t vm_map_protect = kbase + find_vm_map_protect_patch_ios_7(kbase, kdata, ksize);
+    uint32_t mount_patch = kbase + find_mount_ios_7(kbase, kdata, ksize);
+    uint32_t sandbox_call_i_can_has_debugger = kbase + find_sandbox_call_i_can_has_debugger_ios_7(kbase, kdata, ksize);
+    uint32_t csops_addr = kbase + find_csops(kbase, kdata, ksize);
+    uint32_t container_required_patch = kbase + find_container_required_patch_ios_7(kbase, kdata, ksize);
+    uint32_t tfp0_patch = kbase + find_tfp0_patch_ios_7(kbase, kdata, ksize);
+
+    print_log("[PF] proc_enforce:               %08x\n", proc_enforce);
+    print_log("[PF] cs_enforcement_disable:     %08x\n", cs_enforcement_disable_amfi);
+    print_log("[PF] PE_i_can_has_debugger_1:    %08x\n", PE_i_can_has_debugger_1);
+    print_log("[PF] PE_i_can_has_debugger_2:    %08x\n", PE_i_can_has_debugger_2);
+    print_log("[PF] p_bootargs:                 %08x\n", p_bootargs);
+    print_log("[PF] vm_fault_enter:             %08x\n", vm_fault_enter);
+    print_log("[PF] vm_map_enter:               %08x\n", vm_map_enter);
+    print_log("[PF] vm_map_protect:             %08x\n", vm_map_protect);
+    print_log("[PF] mount_patch:                %08x\n", mount_patch);
+    print_log("[PF] sb_call_i_can_has_debugger: %08x\n", sandbox_call_i_can_has_debugger);
+    print_log("[PF] csops:                      %08x\n", csops_addr);
+    print_log("[PF] container_required_patch:   %08x\n", container_required_patch);
+    print_log("[PF] tfp0_patch:                 %08x\n", tfp0_patch);
+
+    print_log("[*] pwning pmap\n");
+    uint32_t pmap_location = kbase + find_pmap_location_ios_7(kbase, kdata, ksize);
+    uint32_t kernel_pmap_store = kread32(pmap_location);
+    uint32_t tte_virt = kread32(kernel_pmap_store);
+    uint32_t tte_phys = kread32(kernel_pmap_store + 4);
+    uint32_t kern_phys_base = tte_phys - (tte_virt - kbase);
+    uint32_t pmap_count = 0;
+    uint32_t *pmap_list = calloc(1, TTB_SIZE * sizeof(uint32_t));
+
+    if (MACH_PORT_VALID(kinfo->tfp0)) {
+        for (uint32_t i = 0; i < TTB_SIZE; i++) {
+            uint32_t addr = tte_virt + (i << 2);
+            uint32_t entry = kread32(addr);
+            if (entry == 0) continue;
+
+            if ((entry & 0x3) == 1) {
+                uint32_t lvl_pg_addr = (entry & (~0x3ff)) - tte_phys + tte_virt;
+                for (int i = 0; i < 256; i++) {
+                    uint32_t sladdr  = lvl_pg_addr + (i << 2);
+                    uint32_t slentry = kread32(sladdr);
+                    if (slentry == 0) continue;
+
+                    uint32_t new_entry = slentry & (~0x200);
+                    if (slentry != new_entry) {
+                        kwrite32(sladdr, new_entry);
+                        pmap_list[pmap_count++] = sladdr;
+                    }
+                }
+                continue;
+            }
+
+            if ((entry & L1_SECT_PROTO) == 2) {
+                uint32_t new_entry = L1_PROTO_TTE(entry);
+                new_entry &= ~L1_SECT_APX;
+                kwrite32(addr, new_entry);
+            }
+        }
+    }
+
+    print_log("[*] running kernelpatcher\n");
+
+    print_log("[*] bootargs\n");
+    patch_bootargs(p_bootargs);
+    usleep(100000);
+
+    print_log("[*] proc_enforce\n");
+    kwrite32(proc_enforce, 0);
+    print_log("[*] cs_enforcement_disable_amfi\n");
+    kwrite32(cs_enforcement_disable_amfi, 1);
+    kwrite32(cs_enforcement_disable_amfi-4, 1);
+    print_log("[*] debug_enabled\n");
+    kwrite32(PE_i_can_has_debugger_1, 1);
+    kwrite32(PE_i_can_has_debugger_2, 1);
+    print_log("[*] container_required_patch\n");
+    kwrite32(container_required_patch, 'haxx');
+
+    print_log("[*] mount_patch\n");
+    kwrite32_exec(mount_patch, 0x0501F025);
+    print_log("[*] tfp0_patch\n");
+    kwrite32_exec(tfp0_patch, 0xbf00bf00);
+    print_log("[*] sandbox_call_i_can_has_debugger\n");
+    kwrite32_exec(sandbox_call_i_can_has_debugger, 0xbf00bf00);
+    print_log("[*] vm_fault_enter\n");
+    kwrite32_exec(vm_fault_enter, 0x2201bf00);
+    print_log("[*] vm_map_protect\n");
+    kwrite32_exec(vm_map_protect, 0xbf00bf00);
+    print_log("[*] vm_map_enter\n");
+    kwrite16_exec(vm_map_enter, 0x29ff);
+    print_log("[*] csops\n");
+    kwrite32_exec(csops_addr, 0xbf00bf00);
+
+    print_log("[*] done unjail7\n");
+}
+
 void unjail8(void){
     print_log("[*] jailbreaking...\n");
 

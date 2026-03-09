@@ -10,6 +10,8 @@
 #include <spawn.h>
 #include <sys/sysctl.h>
 #include <sys/stat.h>
+#include <copyfile.h>
+#include <dirent.h>
 
 #include "oob_entry/oob_entry.h"
 #include "postjailbreak.h"
@@ -117,8 +119,10 @@ void postjailbreak_bootstrap(void) {
     print_log("disabling stashing\n");
     run_cmd("/bin/touch /.cydia_no_stash");
 
-    print_log("copying launchctl\n");
-    run_cmd("/bin/cp -p %s /bin/launchctl", getFilePath("launchctl"));
+    if (!strstr(ckernv, "2423")) {
+        print_log("copying launchctl\n");
+        run_cmd("/bin/cp -p %s /bin/launchctl", getFilePath("launchctl"));
+    }
 
     print_log("fixing perms...\n");
     chmod("/bin/tar", 0755);
@@ -181,9 +185,38 @@ void postjailbreak_add_sbshowapp(void) {
     run_cmd("/usr/bin/killall -9 cfprefsd");
 }
 
+// from aquila
+int clear_mobile_installation_cache(void) {
+    if (access("/var/mobile/Library/Caches/com.apple.mobile.installation.plist", F_OK) == 0) {
+        unlink("/var/mobile/Library/Caches/com.apple.mobile.installation.plist");
+        sync();
+    }
+
+    DIR *dir = opendir("/var/mobile/Library/Caches");
+    if (dir == NULL) return 1;
+    struct dirent *entry = NULL;
+
+    while ((entry = readdir(dir)) != NULL) {
+        char *item = (char *)(entry->d_name);
+        if (strncmp(item, "com.apple.LaunchServices", strlen("com.apple.LaunchServices")) == 0) {
+            if (strstr(item, ".csstore") != NULL) {
+                char *full_path = calloc(1, PATH_MAX);
+                snprintf(full_path, PATH_MAX, "/var/mobile/Library/Caches/%s", item);
+                unlink(full_path);
+                free(full_path);
+                sync();
+            }
+        }
+    }
+
+    closedir(dir);
+    return 0;
+}
+
 void postjailbreak_uicache(void) {
     print_log("running uicache\n");
     run_cmd("su -c uicache mobile");
+    clear_mobile_installation_cache();
 }
 
 void postjailbreak_untether(void) {
@@ -198,6 +231,61 @@ void postjailbreak_untether(void) {
         run_tar(getFilePath("untether.tar"));
         print_log("running postinst\n");
         run_cmd("/bin/bash /private/var/tmp/postinst configure");
+    } else if (strstr(ckernv, "2423")) {
+        // ios 7
+        print_log("move crashhousekeeping\n");
+        copyfile("/usr/libexec/CrashHousekeeping", "/usr/libexec/CrashHousekeeping.backup", NULL, COPYFILE_ALL);
+        unlink("/usr/libexec/CrashHousekeeping");
+        print_log("extracting aquila untether\n");
+        run_tar(getFilePath("aquila_7.tar"));
+        print_log("moving files\n");
+        rename("/Library/LaunchDaemons/com.saurik.Cydia.Startup.plist", "/System/Library/LaunchDaemons/com.saurik.Cydia.Startup.plist");
+        rmdir("/Library/LaunchDaemons");
+        rename("/System/Library/LaunchDaemons", "/Library/LaunchDaemons");
+        mkdir("/System/Library/LaunchDaemons", 0755);
+        rename("/Library/LaunchDaemons/com.apple.mobile.softwareupdated.plist", "/System/Library/LaunchDaemons/com.apple.mobile.softwareupdated.plist_");
+        rename("/Library/LaunchDaemons/com.apple.softwareupdateservicesd.plist", "/System/Library/LaunchDaemons/com.apple.softwareupdateservicesd.plist_");
+
+        NSString *srcFolder = @"/Library/LaunchDaemons/";
+        NSString *dstFolder = @"/System/Library/LaunchDaemons/";
+
+        NSArray *exactFiles = @[
+            @"com.apple.CrashHousekeeping.plist",
+            @"com.apple.MobileFileIntegrity.plist",
+            @"com.apple.sandboxd.plist",
+            @"com.saurik.Cydia.Startup.plist"
+        ];
+
+        NSFileManager *fm = [NSFileManager defaultManager];
+        NSDirectoryEnumerator *filesEnumerator = [fm enumeratorAtPath:srcFolder];
+
+        NSString *file;
+        NSError *error = nil;
+
+        while ((file = [filesEnumerator nextObject])) {
+
+            BOOL shouldMove = NO;
+
+            /* exact file matches */
+            if ([exactFiles containsObject:file]) {
+                shouldMove = YES;
+            }
+
+            /* jetsamproperties.*.plist */
+            if ([file hasPrefix:@"com.apple.jetsamproperties"] &&
+                [file hasSuffix:@".plist"]) {
+                shouldMove = YES;
+            }
+
+            if (!shouldMove) {
+                continue;
+            }
+
+            NSString *src = [srcFolder stringByAppendingPathComponent:file];
+            NSString *dst = [dstFolder stringByAppendingPathComponent:file];
+
+            [fm moveItemAtPath:src toPath:dst error:&error];
+        }
     }
     print_log("done.");
 }
