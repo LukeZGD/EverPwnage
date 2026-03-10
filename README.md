@@ -10,6 +10,7 @@ On Linux, use [Legacy iOS Kit](https://github.com/LukeZGD/Legacy-iOS-Kit) to sid
 
 ## Supported Devices
 
+- **A4 devices (iOS 7):** iPhone 4
 - **A5(X) devices:** iPhone 4S; iPad 2, 3, mini 1; iPod touch 5
 - **A6(X) devices:** iPhone 5, 5C; iPad 4
 
