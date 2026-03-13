@@ -145,7 +145,7 @@ void unjail7(void) {
     uint32_t vm_map_protect = kbase + find_vm_map_protect_patch_ios_7(kbase, kdata, ksize);
     uint32_t mount_patch = kbase + find_mount_ios_7(kbase, kdata, ksize);
     uint32_t sandbox_call_i_can_has_debugger = kbase + find_sandbox_call_i_can_has_debugger_ios_7(kbase, kdata, ksize);
-    uint32_t csops_addr = kbase + find_csops(kbase, kdata, ksize);
+    uint32_t csops_addr = kbase + find_csops_ios_7(kbase, kdata, ksize);
     uint32_t container_required_patch = kbase + find_container_required_patch_ios_7(kbase, kdata, ksize);
     uint32_t tfp0_patch = kbase + find_tfp0_patch_ios_7(kbase, kdata, ksize);
 
