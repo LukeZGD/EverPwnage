@@ -2540,65 +2540,6 @@ uint32_t find_tfp0_patch_ios_7(uint32_t region, uint8_t *kdata, size_t ksize) {
     return (((uintptr_t)ptr) + 0x8) - ((uintptr_t)kdata);
 }
 
-uint32_t find_sb_patch_ios_7(uint32_t region, uint8_t *kdata, size_t ksize) {
-    uint8_t *control_name = memmem(kdata, ksize, "control_name", sizeof("control_name"));
-    if (!control_name) return 0;
-
-    uint16_t * ref = find_literal_ref(region, kdata, ksize, (uint16_t * ) kdata, (uintptr_t) control_name - (uintptr_t) kdata);
-    if (!ref) return 0;
-
-    uint16_t *fn_start = ref;
-    while (1) {
-        fn_start = find_last_insn_matching(region, kdata, ksize, fn_start, insn_is_push);
-        if (!fn_start) return 0;
-
-        uint16_t registers = insn_push_registers(fn_start);
-        if ((registers & (1 << 14)) != 0 || (registers & (1 << 0 | 1 << 1)) == (1 << 0 | 1 << 1)) break;
-    }
-
-    return ((uintptr_t) fn_start) - ((uintptr_t) kdata);
-}
-
-uint32_t find_vn_getpath_ios_7(uint32_t region, uint8_t *kdata, size_t ksize) {
-    const uint8_t search[] = {
-        0x01, 0x20, 0xCD, 0xE9, 0x00, 0x01,
-        0x28, 0x46, 0x41, 0x46, 0x32, 0x46,
-        0x23, 0x46
-    };
-
-    const uint8_t search_alt[] = {
-        0x01, 0x20, 0x32, 0x46, 0x23, 0x46,
-        0xCD, 0xE9, 0x00, 0x01, 0x28, 0x46,
-        0x41, 0x46
-    };
-
-    uint16_t *fn = memmem(kdata, ksize, search, sizeof(search));
-    if (!fn) {
-        fn = memmem(kdata, ksize, search_alt, sizeof(search_alt));
-        if (!fn) return 0;
-    }
-
-    uint16_t *fn_start = find_last_insn_matching(region, kdata, ksize, fn, insn_is_preamble_push);
-    if (!fn_start) return 0;
-    return ((uintptr_t) fn_start | 1) - ((uintptr_t) kdata);
-}
-
-uint32_t find_memcmp_ios_7(uint32_t region, uint8_t *kdata, size_t ksize) {
-    const uint8_t search[] = {
-        0x00, 0x23, 0x62, 0xB1, 0x91, 0xF8,
-        0x00, 0x90, 0x03, 0x78, 0x4B, 0x45,
-        0x09, 0xD1, 0x01, 0x3A, 0x00, 0xF1,
-        0x01, 0x00, 0x01, 0xF1, 0x01, 0x01,
-        0x4F, 0xF0, 0x00, 0x03, 0xF2, 0xD1,
-        0x18, 0x46, 0x70, 0x47, 0xA3, 0xEB,
-        0x09, 0x03, 0x18, 0x46, 0x70, 0x47
-    };
-
-    void *ptr = memmem(kdata, ksize, search, sizeof(search)) + 1;
-    if (!ptr) return 0;
-    return ((uintptr_t) ptr | 1) - ((uintptr_t) kdata);
-}
-
 uint32_t find_container_required_patch_ios_7(uint32_t region, uint8_t *kdata, size_t ksize) {
     char *container_required = "com.apple.private.security.container-required";
     uint8_t *str = memmem(kdata, ksize, container_required, strlen(container_required));

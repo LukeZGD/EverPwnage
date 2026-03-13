@@ -136,9 +136,6 @@ uint32_t find_vm_fault_enter_patch_ios_7(uint32_t region, uint8_t *kdata, size_t
 uint32_t find_vm_map_enter_patch_ios_7(uint32_t region, uint8_t *kdata, size_t ksize);
 uint32_t find_vm_map_protect_patch_ios_7(uint32_t region, uint8_t *kdata, size_t ksize);
 uint32_t find_tfp0_patch_ios_7(uint32_t region, uint8_t *kdata, size_t ksize);
-uint32_t find_sb_patch_ios_7(uint32_t region, uint8_t *kdata, size_t ksize);
-uint32_t find_vn_getpath_ios_7(uint32_t region, uint8_t *kdata, size_t ksize);
-uint32_t find_memcmp_ios_7(uint32_t region, uint8_t *kdata, size_t ksize);
 uint32_t find_container_required_patch_ios_7(uint32_t region, uint8_t *kdata, size_t ksize);
 
 #endif
