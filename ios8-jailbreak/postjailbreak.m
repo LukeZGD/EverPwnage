@@ -236,6 +236,7 @@ void postjailbreak_untether(void) {
         print_log("move crashhousekeeping\n");
         copyfile("/usr/libexec/CrashHousekeeping", "/usr/libexec/CrashHousekeeping.backup", NULL, COPYFILE_ALL);
         unlink("/usr/libexec/CrashHousekeeping");
+        symlink("/aquila", "/usr/libexec/CrashHousekeeping");
         print_log("extracting aquila untether\n");
         run_tar(getFilePath("aquila_7.tar"));
         print_log("moving files\n");
