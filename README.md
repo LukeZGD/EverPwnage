@@ -4,7 +4,7 @@
 
 ## Usage
 
-Download and sideload the IPA from the [latest release](https://github.com/LukeZGD/EverPwnage/releases/latest) using [Sideloadly](https://sideloadly.io/).
+Download and sideload the IPA from the [latest release](https://github.com/LukeZGD/EverPwnage/releases/latest) using [Sideloadly](https://sideloadly.io/) or [PlumeImpactor](https://github.com/CLARATION/Impactor).
 
 On Linux, use [Legacy iOS Kit](https://github.com/LukeZGD/Legacy-iOS-Kit) to sideload the IPA.
 
@@ -21,17 +21,17 @@ EverPwnage has an **"Install Untether" toggle**, which controls the installation
 - The toggle is **enabled by default** for a fully untethered jailbreak.
 - Users can manually disable the toggle if they prefer to remain semi-untethered.
 
-EverUntether is a [forked version](https://github.com/LukeZGD/daibutsu) of daibutsu untether (based on v1.2.3), updated to replace Trident/sock_port_2_legacy with [oob_entry](https://github.com/staturnzz/oob_entry), and some fixes for iOS 9 support. Compatible with all 32-bit devices on iOS 8.0-9.3.4.
+[EverUntether](https://github.com/LukeZGD/daibutsu) is a forked version of [daibutsu untether](https://github.com/kok3shidoll/daibutsu) (based on v1.2.3), updated to replace Trident/sock_port_2_legacy with [oob_entry](https://github.com/staturnzz/oob_entry), and some fixes for iOS 9 support. Compatible with all 32-bit devices on iOS 8.0-9.3.4.
 
-For iOS 7, Aquila Untether by staturnz is used.
+For iOS 7, [Aquila Untether](https://github.com/staturnzz/aquila) by staturnz is used.
 
-For iOS 9.3.5-9.3.6, iocaste untether by staturnz is used.
+For iOS 9.3.5-9.3.6, [iocaste untether](https://github.com/staturnzz/iocaste) by staturnz is used.
 
 ## Switching from Other Jailbreaks
 
 If you are using other semi-untethered jailbreaks for 32-bit devices on iOS 8-9, you can switch to EverPwnage.
 
-Devices that already have EtasonJB or daibutsu untether installed can also switch to EverUntether. Simply install the EverUntether package from my repo: https://lukezgd.github.io/repo
+Devices that already have other supported untethers (EtasonJB/daibutsu/UntetherHomeDepot) installed can also switch to EverUntether. Simply install EverUntether Migrator or Package from my repo: https://lukezgd.github.io/repo
 
 You cannot use EverPwnage/EverUntether if your device is already jailbroken with these: Pangu8, Pangu9, TaiG, PPJailbreak, wtfis. These jailbreaks are incompatible for migration.
 
