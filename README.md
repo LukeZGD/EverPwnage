@@ -16,15 +16,16 @@ On Linux, use [Legacy iOS Kit](https://github.com/LukeZGD/Legacy-iOS-Kit) to sid
 
 ## Untether
 
-EverPwnage has an **"Install Untether" toggle**, which controls the installation of EverUntether.
+EverPwnage has an **"Install Untether" toggle**, which controls the installation of EverUntether, iocaste, or Aquila untether depending on the iOS version.
 
 - The toggle is **enabled by default** for a fully untethered jailbreak.
 - Users can manually disable the toggle if they prefer to remain semi-untethered.
-- **iOS 9.3.5 and 9.3.6 are not untethered**. Semi-untethered only.
 
 EverUntether is a [forked version](https://github.com/LukeZGD/daibutsu) of daibutsu untether (based on v1.2.3), updated to replace Trident/sock_port_2_legacy with [oob_entry](https://github.com/staturnzz/oob_entry), and some fixes for iOS 9 support. Compatible with all 32-bit devices on iOS 8.0-9.3.4.
 
-For iOS 7, Aquila v2.1 Untether is used instead.
+For iOS 7, Aquila Untether by staturnz is used.
+
+For iOS 9.3.5-9.3.6, iocaste untether by staturnz is used.
 
 ## Switching from Other Jailbreaks
 
@@ -49,5 +50,6 @@ Versions 1.3 and newer are built using Xcode 13.4.1 and macOS Monterey 12.6.
 - untether: [jsc_untether](https://github.com/staturnzz/jsc_untether)
 - some ios 9 patches: [libkok3shi](https://github.com/kok3shidoll/libkok3shi)
 - ios 7 untether and patches: [aquila](https://github.com/staturnzz/aquila)
+- ios 9.3.5-9.3.6 untether: [iocaste](https://github.com/staturnzz/iocaste)
 - got IOKit stuff and other learnings from: [wtfis](https://github.com/TheRealClarity/wtfis)
 - base of this jailbreak: [openpwnage](https://github.com/0xilis/openpwnage)

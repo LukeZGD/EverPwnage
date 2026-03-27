@@ -64,6 +64,7 @@ bool uicache_only = false;
         access("/everuntether", F_OK) == 0 ||
         access("/untether/untether", F_OK) == 0 ||
         access("/aquila", F_OK) == 0 ||
+        access("/var/root/iocaste", F_OK) == 0 ||
         access("/tmp/.jailbroken", F_OK) == 0) {
 
         _tweaks_toggle.enabled = NO;
@@ -84,11 +85,6 @@ bool uicache_only = false;
 
             untether_on = false;
         }
-    }
-
-    // disable untether toggle if 9.3.5/6
-    if (strstr(ckernv, "3248.61")) {
-        untether_on = false;
     }
 
     // disable openssh toggle if already installed
@@ -214,10 +210,6 @@ bool uicache_only = false;
 
     print_log("[*] time for postjailbreak...\n");
     tweaks_on = _tweaks_toggle.isOn;
-    // disable untether toggle again if 9.3.5/6 just to be sure
-    if (strstr(ckernv, "3248.61")) {
-        untether_on = false;
-    }
     print_log("[*] untether_on: %d\n", untether_on);
     print_log("[*] tweaks_on: %d\n", tweaks_on);
     print_log("[*] reinstall_strap: %d\n", reinstall_strap);

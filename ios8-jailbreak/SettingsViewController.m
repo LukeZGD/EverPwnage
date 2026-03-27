@@ -31,11 +31,6 @@
     [_firstToggleSwitch setOn:install_openssh];
     [_secondToggleSwitch setOn:reinstall_strap];
     [_untetherSwitch setOn:untether_on];
-    
-    if (strstr(ckernv, "3248.61")) {
-        _untetherSwitch.enabled = NO;
-        [_untetherSwitch setOn:NO];
-    }
 }
 
 - (IBAction)toggleValueChanged:(id)sender {

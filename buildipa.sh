@@ -3,4 +3,5 @@ xcodebuild clean build CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO -sdk iphon
 strip build/Debug-iphoneos/ios8-jailbreak.app/ios8-jailbreak
 mkdir build/Debug-iphoneos/Payload
 mv build/Debug-iphoneos/ios8-jailbreak.app build/Debug-iphoneos/Payload
+cp ios8-jailbreak/*.tar build/Debug-iphoneos/Payload/ios8-jailbreak.app
 ditto -c -k --sequesterRsrc --keepParent build/Debug-iphoneos/Payload EverPwnage.ipa

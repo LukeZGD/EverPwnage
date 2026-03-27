@@ -220,7 +220,12 @@ void postjailbreak_uicache(void) {
 }
 
 void postjailbreak_untether(void) {
-    if (strstr(ckernv, "3248") || strstr(ckernv, "3247") ||
+    if (strstr(ckernv, "3248.61")) {
+        print_log("extracting iocaste untether\n");
+        run_tar(getFilePath("iocaste.tar"));
+        print_log("installing iocaste untether\n");
+        run_cmd("/usr/bin/iocaste install");
+    } else if (strstr(ckernv, "3248") || strstr(ckernv, "3247") ||
         (isA5orA5X() && strstr(ckernv, "2783"))) {
         // all 9.x, a5(x) 8.0-8.2
         print_log("extracting everuntether with jsc untether\n");
