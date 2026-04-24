@@ -114,7 +114,7 @@ void postjailbreak_bootstrap(void) {
     print_log("chmod'd tar_path\n");
 
     print_log("extracting bootstrap\n");
-    run_tar("%s", getFilePath("bootstrap.tar"));
+    run_tar(getFilePath("bootstrap.tar"));
 
     print_log("disabling stashing\n");
     run_cmd("/bin/touch /.cydia_no_stash");
@@ -298,7 +298,9 @@ void postjailbreak_untether(void) {
 
 void postjailbreak_openssh(void) {
     print_log("extracting openssh\n");
-    run_tar("%s", getFilePath("openssh.tar"));
+    run_tar(getFilePath("openssh.tar"));
+    run_tar(getFilePath("openssl.tar"));
+    run_tar(getFilePath("sshdeb.tar"));
 }
 
 void postjailbreak_tweaks(void) {

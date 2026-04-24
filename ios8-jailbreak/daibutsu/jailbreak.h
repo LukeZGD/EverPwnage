@@ -12,8 +12,3 @@ void unjail9(void);
 #define L1_SECT_SORDER          (0)
 #define L1_SECT_DEFCACHE        (L1_SECT_SORDER)
 #define L1_PROTO_TTE(entry)     (entry | L1_SECT_S_BIT | L1_SECT_DEFPROT | L1_SECT_DEFCACHE)
-#define L1_PAGE_PROTO           (1 << 0)
-#define L1_COARSE_PT            (0xFFFFFC00)
-#define PT_SIZE                 256
-#define L2_PAGE_APX             (1 << 9)
-#define BOOTARGS_STR            "cs_enforcement_disable=1 amfi_get_out_of_my_way=1"
