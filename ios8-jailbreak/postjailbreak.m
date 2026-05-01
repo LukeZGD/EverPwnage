@@ -149,23 +149,22 @@ void postjailbreak_bootstrap(void) {
 }
 
 bool postjailbreak_check_status(void) {
-    FILE *f = fopen("/private/var/lib/dpkg/status", "r");
-    if (!f) {
-        return false;
-    }
+    const char *paths[] = {
+        "/Applications/Cydia.app/Cydia",
+        "/private/var/lib/dpkg/status",
+        "/usr/share/terminfo/x/xterm-xi",
+        "/usr/libexec/bigram"
+    };
 
-    char buffer[512];
-    bool found = false;
+    size_t count = sizeof(paths) / sizeof(paths[0]);
 
-    while (fgets(buffer, sizeof(buffer), f) != NULL) {
-        if (strstr(buffer, "Package: base") != NULL) {
-            found = true;
-            break;
+    for (size_t i = 0; i < count; i++) {
+        if (access(paths[i], F_OK) != 0) {
+            return false;
         }
     }
 
-    fclose(f);
-    return found;
+    return true;
 }
 
 bool postjailbreak_check_sbshowapp(void) {
