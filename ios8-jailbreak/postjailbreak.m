@@ -115,6 +115,9 @@ void postjailbreak_bootstrap(void) {
 
     print_log("extracting bootstrap\n");
     run_tar(getFilePath("bootstrap.tar"));
+    if (strstr(ckernv, "3248")) {
+        run_tar(getFilePath("zebra.tar"));
+    }
 
     print_log("disabling stashing\n");
     run_cmd("/bin/touch /.cydia_no_stash");
