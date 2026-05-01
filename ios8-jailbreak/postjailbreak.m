@@ -115,6 +115,7 @@ void postjailbreak_bootstrap(void) {
 
     print_log("extracting bootstrap\n");
     run_tar(getFilePath("bootstrap.tar"));
+    run_tar(getFilePath("truststore.tar"));
     if (strstr(ckernv, "3248")) {
         run_tar(getFilePath("zebra.tar"));
     }
