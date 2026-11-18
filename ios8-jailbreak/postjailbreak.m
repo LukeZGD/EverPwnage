@@ -116,14 +116,12 @@ void postjailbreak_bootstrap(void) {
     print_log("extracting bootstrap\n");
     run_tar(getFilePath("bootstrap.tar"));
     run_tar(getFilePath("truststore.tar"));
-    if (strstr(ckernv, "3248")) {
-        run_tar(getFilePath("zebra.tar"));
-    }
+    run_tar(getFilePath("melder.tar"));
 
     print_log("disabling stashing\n");
     run_cmd("/bin/touch /.cydia_no_stash");
 
-    if (!strstr(ckernv, "2423")) {
+    if (strstr(ckernv, "3248")) {
         print_log("copying launchctl\n");
         run_cmd("/bin/cp -p %s /bin/launchctl", getFilePath("launchctl"));
     }
